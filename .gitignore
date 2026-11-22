@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Model weights
+*.onnx
+*.pt
+*.h5
+
+# Secrets
+.env
+
+# Large photos
+experiments/data/
