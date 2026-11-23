@@ -1,0 +1,75 @@
+### 2026-11-24T02:15:40+05:30  install 'uniface onnxruntime' for uniface
+Collecting uniface
+  Downloading uniface-4.3.0-py3-none-any.whl.metadata (11 kB)
+Collecting onnxruntime
+  Using cached onnxruntime-1.32.0-cp311-cp311-win_amd64.whl.metadata (6.1 kB)
+Collecting numpy>=1.24 (from uniface)
+  Using cached numpy-2.4.6-cp311-cp311-win_amd64.whl.metadata (6.6 kB)
+Collecting opencv-python>=4.5.5.62 (from uniface)
+  Using cached opencv_python-5.1.0.95-cp37-abi3-win_amd64.whl.metadata (21 kB)
+Collecting scikit-image>=0.26 (from uniface)
+  Using cached scikit_image-0.26.0-cp311-cp311-win_amd64.whl.metadata (15 kB)
+Collecting scipy>=1.11.4 (from uniface)
+  Using cached scipy-1.17.1-cp311-cp311-win_amd64.whl.metadata (60 kB)
+Collecting requests>=2.28.0 (from uniface)
+  Using cached requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+Collecting tqdm>=4.64.0 (from uniface)
+  Using cached tqdm-4.70.1-py3-none-any.whl.metadata (57 kB)
+Collecting flatbuffers (from onnxruntime)
+  Using cached flatbuffers-25.12.19-py2.py3-none-any.whl.metadata (1.0 kB)
+Collecting packaging (from onnxruntime)
+  Using cached packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+Collecting protobuf>=4.25.8 (from onnxruntime)
+  Using cached protobuf-7.36.2-cp310-abi3-win_amd64.whl.metadata (595 bytes)
+Collecting charset_normalizer<4,>=2 (from requests>=2.28.0->uniface)
+  Using cached charset_normalizer-3.5.3-cp311-cp311-win_amd64.whl.metadata (44 kB)
+Collecting idna<4,>=2.5 (from requests>=2.28.0->uniface)
+  Using cached idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+Collecting urllib3<3,>=1.26 (from requests>=2.28.0->uniface)
+  Using cached urllib3-2.8.0-py3-none-any.whl.metadata (7.4 kB)
+Collecting certifi>=2023.5.7 (from requests>=2.28.0->uniface)
+  Using cached certifi-2026.11.20-py3-none-any.whl.metadata (2.5 kB)
+Collecting networkx>=3.0 (from scikit-image>=0.26->uniface)
+  Using cached networkx-3.6.1-py3-none-any.whl.metadata (6.8 kB)
+Collecting pillow>=10.1 (from scikit-image>=0.26->uniface)
+  Using cached pillow-13.0.0-cp311-cp311-win_amd64.whl.metadata (9.3 kB)
+Collecting imageio!=2.35.0,>=2.33 (from scikit-image>=0.26->uniface)
+  Using cached imageio-2.38.2-py3-none-any.whl.metadata (9.7 kB)
+Collecting tifffile>=2022.8.12 (from scikit-image>=0.26->uniface)
+  Using cached tifffile-2026.3.3-py3-none-any.whl.metadata (31 kB)
+Collecting lazy-loader>=0.4 (from scikit-image>=0.26->uniface)
+  Using cached lazy_loader-0.6-py3-none-any.whl.metadata (6.0 kB)
+Collecting colorama (from tqdm>=4.64.0->uniface)
+  Using cached colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+Downloading uniface-4.3.0-py3-none-any.whl (163 kB)
+   ---------------------------------------- 163.4/163.4 kB 1.1 MB/s eta 0:00:00
+Using cached onnxruntime-1.32.0-cp311-cp311-win_amd64.whl (16.7 MB)
+Using cached numpy-2.4.6-cp311-cp311-win_amd64.whl (12.6 MB)
+Using cached opencv_python-5.1.0.95-cp37-abi3-win_amd64.whl (48.0 MB)
+Using cached protobuf-7.36.2-cp310-abi3-win_amd64.whl (456 kB)
+Using cached requests-2.34.2-py3-none-any.whl (73 kB)
+Using cached scikit_image-0.26.0-cp311-cp311-win_amd64.whl (11.9 MB)
+Using cached packaging-26.3-py3-none-any.whl (129 kB)
+Using cached scipy-1.17.1-cp311-cp311-win_amd64.whl (36.6 MB)
+Using cached tqdm-4.70.1-py3-none-any.whl (80 kB)
+Using cached flatbuffers-25.12.19-py2.py3-none-any.whl (26 kB)
+Using cached certifi-2026.11.20-py3-none-any.whl (127 kB)
+Using cached charset_normalizer-3.5.3-cp311-cp311-win_amd64.whl (212 kB)
+Using cached idna-3.20-py3-none-any.whl (69 kB)
+Using cached imageio-2.38.2-py3-none-any.whl (328 kB)
+Using cached lazy_loader-0.6-py3-none-any.whl (8.8 kB)
+Using cached networkx-3.6.1-py3-none-any.whl (2.1 MB)
+Using cached pillow-13.0.0-cp311-cp311-win_amd64.whl (7.3 MB)
+Using cached tifffile-2026.3.3-py3-none-any.whl (243 kB)
+Using cached urllib3-2.8.0-py3-none-any.whl (135 kB)
+Using cached colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Installing collected packages: flatbuffers, urllib3, protobuf, pillow, packaging, numpy, networkx, idna, colorama, charset_normalizer, certifi, tqdm, tifffile, scipy, requests, opencv-python, onnxruntime, lazy-loader, imageio, scikit-image, uniface
+Successfully installed certifi-2026.11.20 charset_normalizer-3.5.3 colorama-0.4.6 flatbuffers-25.12.19 idna-3.20 imageio-2.38.2 lazy-loader-0.6 networkx-3.6.1 numpy-2.4.6 onnxruntime-1.32.0 opencv-python-5.1.0.95 packaging-26.3 pillow-13.0.0 protobuf-7.36.2 requests-2.34.2 scikit-image-0.26.0 scipy-1.17.1 tifffile-2026.3.3 tqdm-4.70.1 uniface-4.3.0 urllib3-2.8.0
+
+[notice] A new release of pip is available: 24.0 -> 26.3
+[notice] To update, run: C:\Dev\TASK A\experiments\envs\uniface\.venv\Scripts\python.exe -m pip install --upgrade pip
+### EXIT_CODE=0
+### SECONDS=36
+### NOTE (manual) pip install: clean, 36 s, prebuilt wheels on Python 3.11 (uniface 4.3.0, onnxruntime 1.32). No compiler needed.
+### NOTE (manual) Weights auto-downloaded on first use (SCRFD-10G ~16 MB, ArcFace ResNet ~166 MB). Cold first call 158 s (mostly download), then 0.4-1.4 s/image.
+### NOTE (manual) Smoke test ok: 1 face in LFW photos, 11 detections in group1 (10 real). Same-person cosine dist 0.545, different 1.068.
