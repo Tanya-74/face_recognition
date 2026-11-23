@@ -1,1 +1,98 @@
 # Architecture
+
+The app finds known people in a group photo. It runs on one computer and needs no internet after setup.
+How to install and use it: [README.md](README.md). Why UniFace: [RESEARCH.md](RESEARCH.md).
+
+![Architecture of the offline face recognition app](docs/architecture.svg)
+
+Diagram files in [docs/](docs/): [architecture.svg](docs/architecture.svg) (image above),
+[architecture.png](docs/architecture.png), [architecture.html](docs/architecture.html) (interactive, open it in a
+browser; it is a self-contained file and needs no internet), and [architecture.json](docs/architecture.json)
+(the source). The diagram was made with the Archify tool. The tool is not part of this repo, so to redraw it you need
+to install Archify yourself. Each box in the diagram points at its file in `app/` (see the source).
+
+## How one run works
+
+1. The user picks a **folder of known people** and a **group photo** in the browser page.
+2. The page sends the folder photos to the server **a few at a time** (6 per request), so it can show a real progress bar.
+3. For each photo the **engine** shrinks it if it is huge, turns phone photos upright, asks the **face backend** for
+   the faces and keeps the **largest** face as that person's "embedding" (a list of 512 numbers that describes the face).
+   The embeddings go into the **embedding cache**.
+4. The page then sends the group photo. The engine finds every face and, for each one, looks up the
+   **nearest known person** and the **distance** to them.
+5. The server answers with the processed picture, a box for every face, the nearest name and the distance.
+6. The **page** decides the label: if the distance is at most the slider value, the face gets that name,
+   otherwise "Unknown". Moving the slider repeats only this step, in the browser.
+
+## The parts, in simple words
+
+| Part | File | What it does |
+|---|---|---|
+| Web page | `app/static/` | The three steps, the progress bar, the slider, the picture with boxes and the results list. Plain HTML, CSS and JavaScript, no outside libraries, fonts or links. |
+| FastAPI server | `app/main.py` | Serves the page and a small JSON API. Listens on `127.0.0.1` only, so other computers cannot reach it. Loads the models in the background when it starts. |
+| Engine | `app/engine.py` | Everything that is not "web" and not "face library": checks and shrinks pictures, picks the largest face, handles bad files with plain-English messages, keeps the cache, finds the nearest person. |
+| Embedding cache | `Session` class in `app/engine.py` | The known people's embeddings, in memory, per browser visit. Lets you press Run again without reading the folder again. |
+| Face backend | `app/face_backend.py` | The only place that knows about UniFace. It offers two functions: `get_faces(image)` and `distance(a, b)`. The experiments use the same two functions. Another library can be swapped in by writing another file like it. |
+| Model files | `models/*.onnx` | The SCRFD detector (finds faces) and the ArcFace model (makes embeddings). Loaded from this folder only, on CPU. |
+| Download script | `scripts/download_models.py` | Fetches the two model files once. This is the only moment the internet is used. |
+
+## Trade-offs (what we chose, and what it costs)
+
+**UniFace instead of DeepFace, face_recognition or InsightFace.**
+We chose UniFace because it installed fastest and cleanly (36 s, no problems), has the smallest environment
+(475 MB; DeepFace needs 2.0 GB and had two install problems), loaded fastest and was the fastest per image in the smoke test.
+This is a choice on install effort, size and speed. It is **not** a proven choice on accuracy:
+InsightFace uses the same model family and would probably give very similar results, DeepFace was only smoke-tested,
+and face_recognition could not be installed at all on this PC (dlib needs Visual C++ Build Tools).
+We did not try to fix that. The numbers are in [RESEARCH.md](RESEARCH.md).
+
+**Only one library was fully evaluated, because of time.**
+The full test (tests A to D with a threshold sweep) ran on UniFace only. For the other three we only have the quick smoke
+test, so there is no accuracy comparison between libraries. If accuracy matters more than install effort, the same
+evaluation script (`experiments/evaluate.py`) can be run on another wrapper.
+
+**Model files are not in git.**
+`arcface_resnet.onnx` is 174 MB and GitHub refuses files over 100 MB (the second file is 17 MB). So the repo holds
+code only, and the models come from `scripts/download_models.py` or, as a second way, from a GitHub Release page where
+the owner uploads the two files (the README lists their SHA-256 hashes). The cost: setup needs one extra step and
+internet once, and **the Release does not exist until the owner creates it**. Git LFS was not used.
+
+**The threshold is applied in the browser, not on the server.**
+The server returns the nearest person and the distance for every face and never decides "Known or Unknown".
+So the slider is instant and needs no server call. The costs: the rule "distance <= threshold" lives in
+JavaScript (another client of the API would need to repeat it), and the server returns only the single nearest person,
+not a ranked list, so the page cannot show "second best".
+
+**Embeddings are cached in memory only.**
+Pressing Run again with the same folder is instant. The costs: the cache is gone when the app restarts (the page then
+asks you to choose the folder again), only the last 4 folders are kept, and it only works with one server process
+(which is how `run_app.bat` starts it). Nothing about people is written to disk, which is also a privacy benefit.
+The size is no concern: one photo is about 2 KB of embedding.
+
+**One face image at a time.**
+The backend uses a lock, so photos are processed one after another. This keeps the code simple and safe, but a
+big folder is not processed in parallel (about 0.5 to 2 seconds per photo on this PC).
+
+**Folder photo: largest face, duplicates all used.**
+If a folder photo shows several faces we assume the largest is the named person. This is right in our test data
+(background people are smaller) but wrong whenever someone else is bigger. If two files have the same name, both are used.
+
+**Pictures are shrunk to 1600 px on the long side.**
+This protects memory and speed. The cost: in a big group photo, small faces get even smaller, and the detector itself
+works on about 640 px. Small faces in a large real group photo may be missed. We did not test this.
+
+## Limits of the testing (please read)
+
+- **The test data are collages.** The three "group photos" are made by pasting 10 LFW face photos into a grid: every
+  face is big, sharp, frontal and evenly lit. Real group photos have small, blurred, turned or partly hidden faces,
+  so detection and matching will be harder there.
+- **The data set is small:** 50 known people, 20 unknown people, 30 group faces, one reference photo each. One person
+  is 2 % in test A.
+- **The default threshold (0.62) is a guess from this easy data.** The flat zone in our test was 0.55 to 0.80 (no
+  mistakes). Real photos shrink that zone, so the number must be re-checked on your own photos.
+- **What was tested on the app itself:** 23 automatic API checks (bad files, huge pictures, empty group photo, expired
+  session) and a headless-browser run of the page with 10 folder photos. A folder of thousands of photos, very large
+  real group photos and other browsers were **not** tested; the 5000-photo limit is untested.
+- **Speed varies with the machine.** We measured 0.4 to 2.2 seconds per photo on the same PC at different times.
+- **Security is basic.** The server listens on `127.0.0.1` only and has no login. Any program on the same computer
+  can call it. It is meant for one person on their own machine.
