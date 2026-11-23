@@ -1,0 +1,124 @@
+test_set,image,faces_found,seconds
+folder,folder/Adolfo Aguilar Zinser.jpg,2,1.603
+folder,folder/Alexandra Vodjanikova.jpg,1,2.391
+folder,folder/Ali Naimi.jpg,1,2.666
+folder,folder/Allyson Felix.jpg,1,2.333
+folder,folder/Amanda Beard.jpg,1,2.499
+folder,folder/Bob Beauprez.jpg,1,2.349
+folder,folder/Bono.jpg,1,2.371
+folder,folder/Boris Berezovsky.jpg,3,2.218
+folder,folder/Brian Griese.jpg,1,0.492
+folder,folder/Bruce Weber.jpg,1,0.531
+folder,folder/Carlos Moya.jpg,1,0.512
+folder,folder/Christine Gregoire.jpg,1,0.555
+folder,folder/Cristina Fernandez.jpg,1,0.696
+folder,folder/Damon van Dam.jpg,1,0.467
+folder,folder/Eddy Merckx.jpg,1,0.404
+folder,folder/Emma Thompson.jpg,1,0.471
+folder,folder/Eric Robert Rudolph.jpg,1,0.479
+folder,folder/Erika Harold.jpg,1,0.428
+folder,folder/Ethan Hawke.jpg,2,0.719
+folder,folder/Filippo Inzaghi.jpg,1,0.425
+folder,folder/GL Peiris.jpg,1,0.579
+folder,folder/Greg Rusedski.jpg,1,0.472
+folder,folder/Guillaume Soro.jpg,1,0.599
+folder,folder/Jason Alexander.jpg,1,0.494
+folder,folder/Jay Leno.jpg,1,0.334
+folder,folder/Jesse Harris.jpg,1,0.491
+folder,folder/John Howard.jpg,1,0.435
+folder,folder/Justin Leonard.jpg,1,0.556
+folder,folder/Kamal Kharrazi.jpg,1,0.494
+folder,folder/Karen Mok.jpg,3,0.757
+folder,folder/Lana Clarkson.jpg,1,0.524
+folder,folder/Marissa Jaret Winokur.jpg,1,0.52
+folder,folder/Michelle Kwan.jpg,1,0.674
+folder,folder/Mohamed Benaissa.jpg,1,0.566
+folder,folder/Norodom Sihanouk.jpg,3,0.794
+folder,folder/Oleksandr Moroz.jpg,1,0.356
+folder,folder/Patrice Chereau.jpg,1,0.431
+folder,folder/Queen Latifah.jpg,2,0.706
+folder,folder/Reese Witherspoon.jpg,1,0.414
+folder,folder/Robert Horan.jpg,1,0.41
+folder,folder/Ruth Dreifuss.jpg,1,0.349
+folder,folder/Saeb Erekat.jpg,1,0.364
+folder,folder/Sebastien Grosjean.jpg,1,0.386
+folder,folder/Stephen Friedman.jpg,1,0.479
+folder,folder/Steve Waugh.jpg,2,0.683
+folder,folder/Steven Seagal.jpg,1,0.388
+folder,folder/Thomas OBrien.jpg,1,0.414
+folder,folder/Tim Floyd.jpg,1,0.489
+folder,folder/William Martin.jpg,1,0.367
+folder,folder/Xanana Gusmao.jpg,1,0.416
+test_same,test_same/Adolfo Aguilar Zinser.jpg,1,0.438
+test_same,test_same/Alexandra Vodjanikova.jpg,1,0.301
+test_same,test_same/Ali Naimi.jpg,2,0.673
+test_same,test_same/Allyson Felix.jpg,1,0.412
+test_same,test_same/Amanda Beard.jpg,2,0.583
+test_same,test_same/Bob Beauprez.jpg,1,0.361
+test_same,test_same/Bono.jpg,1,0.416
+test_same,test_same/Boris Berezovsky.jpg,1,0.398
+test_same,test_same/Brian Griese.jpg,1,0.303
+test_same,test_same/Bruce Weber.jpg,1,0.458
+test_same,test_same/Carlos Moya.jpg,1,0.389
+test_same,test_same/Christine Gregoire.jpg,1,0.375
+test_same,test_same/Cristina Fernandez.jpg,1,0.435
+test_same,test_same/Damon van Dam.jpg,1,0.473
+test_same,test_same/Eddy Merckx.jpg,1,0.323
+test_same,test_same/Emma Thompson.jpg,1,0.35
+test_same,test_same/Eric Robert Rudolph.jpg,1,0.445
+test_same,test_same/Erika Harold.jpg,1,0.419
+test_same,test_same/Ethan Hawke.jpg,2,0.718
+test_same,test_same/Filippo Inzaghi.jpg,1,0.43
+test_same,test_same/GL Peiris.jpg,1,0.471
+test_same,test_same/Greg Rusedski.jpg,1,0.473
+test_same,test_same/Guillaume Soro.jpg,3,0.767
+test_same,test_same/Jason Alexander.jpg,1,0.525
+test_same,test_same/Jay Leno.jpg,1,0.343
+test_same,test_same/Jesse Harris.jpg,1,0.353
+test_same,test_same/John Howard.jpg,1,0.425
+test_same,test_same/Justin Leonard.jpg,1,0.322
+test_same,test_same/Kamal Kharrazi.jpg,3,0.782
+test_same,test_same/Karen Mok.jpg,1,0.551
+test_same,test_same/Lana Clarkson.jpg,1,0.423
+test_same,test_same/Marissa Jaret Winokur.jpg,2,0.729
+test_same,test_same/Michelle Kwan.jpg,1,0.338
+test_same,test_same/Mohamed Benaissa.jpg,1,0.392
+test_same,test_same/Norodom Sihanouk.jpg,1,0.476
+test_same,test_same/Oleksandr Moroz.jpg,1,0.5
+test_same,test_same/Patrice Chereau.jpg,1,0.462
+test_same,test_same/Queen Latifah.jpg,1,0.427
+test_same,test_same/Reese Witherspoon.jpg,1,0.304
+test_same,test_same/Robert Horan.jpg,1,0.414
+test_same,test_same/Ruth Dreifuss.jpg,1,0.503
+test_same,test_same/Saeb Erekat.jpg,1,0.345
+test_same,test_same/Sebastien Grosjean.jpg,1,0.39
+test_same,test_same/Stephen Friedman.jpg,1,0.39
+test_same,test_same/Steve Waugh.jpg,1,0.375
+test_same,test_same/Steven Seagal.jpg,1,0.462
+test_same,test_same/Thomas OBrien.jpg,1,0.376
+test_same,test_same/Tim Floyd.jpg,1,0.356
+test_same,test_same/William Martin.jpg,1,0.394
+test_same,test_same/Xanana Gusmao.jpg,1,0.384
+test_unknown,test_unknown/Antonio Trillanes.jpg,1,0.33
+test_unknown,test_unknown/Arminio Fraga.jpg,1,0.435
+test_unknown,test_unknown/Billy Graham.jpg,1,0.533
+test_unknown,test_unknown/Brandon Jones.jpg,1,0.422
+test_unknown,test_unknown/Clint Howard.jpg,1,0.429
+test_unknown,test_unknown/Enrique Haroldo Gorriaran Merlo.jpg,1,0.389
+test_unknown,test_unknown/Gerard Tronche.jpg,1,0.414
+test_unknown,test_unknown/Iain Anderson.jpg,1,0.379
+test_unknown,test_unknown/Jason Lezak.jpg,1,0.402
+test_unknown,test_unknown/Jose Luis Santiago Vasconcelos.jpg,1,0.445
+test_unknown,test_unknown/Kathryn Grayson.jpg,1,0.367
+test_unknown,test_unknown/Koichiro Matsuura.jpg,1,0.459
+test_unknown,test_unknown/Michael Shane Jolly.jpg,2,0.586
+test_unknown,test_unknown/Prince Naruhito.jpg,1,0.374
+test_unknown,test_unknown/Ren Qingjin.jpg,2,0.603
+test_unknown,test_unknown/Roger Suarez.jpg,1,0.377
+test_unknown,test_unknown/Shane Warne.jpg,1,0.413
+test_unknown,test_unknown/Stephen Crampton.jpg,2,0.549
+test_unknown,test_unknown/Susan Collins.jpg,1,0.495
+test_unknown,test_unknown/Tony Parker.jpg,2,0.532
+groups,groups/group1.jpg,11,1.392
+groups,groups/group2.jpg,13,1.485
+groups,groups/group3.jpg,10,1.366

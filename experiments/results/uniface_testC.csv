@@ -1,0 +1,4 @@
+library,group_photo,faces_detected_total,positions_with_a_face,expected,extra_faces
+uniface,group1.jpg,11,10,10,1
+uniface,group2.jpg,13,10,10,3
+uniface,group3.jpg,10,10,10,0
