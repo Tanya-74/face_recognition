@@ -1,0 +1,10 @@
+library,image,faces_found,embedding_dim,seconds,warmup_seconds
+insightface,data/folder/Bono.jpg,1,512,0.57,3.8
+insightface,data/test_same/Bono.jpg,1,512,0.63,3.8
+insightface,data/groups/group1.jpg,11,512,1.51,3.8
+uniface,data/folder/Bono.jpg,1,512,0.54,1.9
+uniface,data/test_same/Bono.jpg,1,512,0.42,1.9
+uniface,data/groups/group1.jpg,11,512,1.37,1.9
+deepface,data/folder/Bono.jpg,1,512,1.06,10.4
+deepface,data/test_same/Bono.jpg,1,512,1.15,10.4
+deepface,data/groups/group1.jpg,11,512,2.34,10.4
