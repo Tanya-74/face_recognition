@@ -1,0 +1,8 @@
+# Face Recognition app - Python 3.11
+fastapi>=0.115
+uvicorn>=0.30
+python-multipart>=0.0.9
+pillow>=10
+numpy>=1.26
+onnxruntime>=1.18
+uniface==4.3.0
