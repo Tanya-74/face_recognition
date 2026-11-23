@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Who is in the photo?</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header class="top">
+      <h1>Who is in the photo?</h1>
+      <p class="lead">Find your known people in a group photo. Everything stays on this computer.</p>
+      <p id="engine-status" class="pill" role="status">Starting up...</p>
+    </header>
+
+    <div id="error" class="alert" role="alert" hidden></div>
+
+    <section class="card" aria-labelledby="s1">
+      <div class="step-no" aria-hidden="true">1</div>
+      <div class="step-body">
+        <h2 id="s1">Choose the folder of known people</h2>
+        <p class="help">Pick a folder with one photo per person. The file name is the person's name,
+          for example <strong>Priya Sharma.jpg</strong>.</p>
+        <button id="pick-folder" class="btn" type="button">Choose folder</button>
+        <input id="folder-input" type="file" webkitdirectory multiple hidden>
+        <p id="folder-info" class="info" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="s2">
+      <div class="step-no" aria-hidden="true">2</div>
+      <div class="step-body">
+        <h2 id="s2">Upload one group photo</h2>
+        <p class="help">A picture with several people in it (JPG, PNG, BMP or WEBP).</p>
+        <button id="pick-group" class="btn" type="button">Choose group photo</button>
+        <input id="group-input" type="file" accept="image/*" hidden>
+        <p id="group-info" class="info" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="s3">
+      <div class="step-no" aria-hidden="true">3</div>
+      <div class="step-body">
+        <h2 id="s3">Run</h2>
+        <p class="help">The first run reads every photo in the folder, which can take a while for a big folder.
+          Later runs with the same folder are instant.</p>
+        <div class="row">
+          <button id="run" class="btn primary" type="button" disabled>Run</button>
+          <button id="cancel" class="btn secondary" type="button" hidden>Cancel</button>
+        </div>
+        <div id="progress" class="progress" hidden>
+          <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="bar-fill"></div>
+          </div>
+          <p id="progress-text" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card slider-card" aria-labelledby="s4">
+      <div class="step-body wide">
+        <h2 id="s4">Strictness (threshold)</h2>
+        <p class="help">A face gets a name only if it is closer than this number to a known person.
+          <strong>Lower</strong> = stricter: fewer names, fewer mistakes, more "Unknown".
+          <strong>Higher</strong> = more forgiving: more names, but strangers may get a wrong name.
+          Moving the slider changes the labels instantly.</p>
+        <div class="slider-row">
+          <label for="threshold" class="sr-only">Threshold</label>
+          <input id="threshold" type="range" min="0.10" max="1.00" step="0.01" value="0.62">
+          <output id="threshold-value" for="threshold">0.62</output>
+        </div>
+      </div>
+    </section>
+
+    <section id="results" hidden aria-labelledby="rh">
+      <h2 id="rh">Result</h2>
+      <p id="summary" class="summary" aria-live="polite"></p>
+      <div class="stage"><canvas id="canvas" aria-label="Group photo with a box and a name on each face"></canvas></div>
+      <h3>Faces found</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Distance</th><th>Status</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <details id="notes" class="notes" hidden>
+        <summary id="notes-title"></summary>
+        <ul id="notes-list"></ul>
+      </details>
+    </section>
+
+    <footer>Offline face recognition &middot; <span id="lib"></span> &middot; no internet needed</footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
