@@ -1,0 +1,98 @@
+### 2026-11-24T02:13:40+05:30  install 'insightface onnxruntime opencv-python-headless' for insightface
+Collecting insightface
+  Downloading insightface-2.1-py3-none-any.whl.metadata (14 kB)
+Collecting onnxruntime
+  Using cached onnxruntime-1.32.0-cp311-cp311-win_amd64.whl.metadata (6.1 kB)
+Collecting opencv-python-headless
+  Downloading opencv_python_headless-5.1.0.95-cp37-abi3-win_amd64.whl.metadata (21 kB)
+Collecting numpy (from insightface)
+  Using cached numpy-2.4.6-cp311-cp311-win_amd64.whl.metadata (6.6 kB)
+Collecting onnx>=1.13 (from insightface)
+  Downloading onnx-1.23.2-cp311-cp311-win_amd64.whl.metadata (8.7 kB)
+Collecting opencv-python (from insightface)
+  Downloading opencv_python-5.1.0.95-cp37-abi3-win_amd64.whl.metadata (21 kB)
+Collecting tqdm (from insightface)
+  Using cached tqdm-4.70.1-py3-none-any.whl.metadata (57 kB)
+Collecting requests (from insightface)
+  Using cached requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+Collecting scipy (from insightface)
+  Downloading scipy-1.17.1-cp311-cp311-win_amd64.whl.metadata (60 kB)
+     -------------------------------------- 61.0/61.0 kB 804.9 kB/s eta 0:00:00
+Collecting scikit-image (from insightface)
+  Downloading scikit_image-0.26.0-cp311-cp311-win_amd64.whl.metadata (15 kB)
+Collecting flatbuffers (from onnxruntime)
+  Using cached flatbuffers-25.12.19-py2.py3-none-any.whl.metadata (1.0 kB)
+Collecting packaging (from onnxruntime)
+  Using cached packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+Collecting protobuf>=4.25.8 (from onnxruntime)
+  Using cached protobuf-7.36.2-cp310-abi3-win_amd64.whl.metadata (595 bytes)
+Collecting typing_extensions>=4.7.1 (from onnx>=1.13->insightface)
+  Using cached typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting ml_dtypes>=0.5.4 (from onnx>=1.13->insightface)
+  Using cached ml_dtypes-0.7.0-cp311-cp311-win_amd64.whl.metadata (11 kB)
+Collecting charset_normalizer<4,>=2 (from requests->insightface)
+  Using cached charset_normalizer-3.5.3-cp311-cp311-win_amd64.whl.metadata (44 kB)
+Collecting idna<4,>=2.5 (from requests->insightface)
+  Using cached idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+Collecting urllib3<3,>=1.26 (from requests->insightface)
+  Using cached urllib3-2.8.0-py3-none-any.whl.metadata (7.4 kB)
+Collecting certifi>=2023.5.7 (from requests->insightface)
+  Using cached certifi-2026.11.20-py3-none-any.whl.metadata (2.5 kB)
+Collecting networkx>=3.0 (from scikit-image->insightface)
+  Downloading networkx-3.6.1-py3-none-any.whl.metadata (6.8 kB)
+Collecting pillow>=10.1 (from scikit-image->insightface)
+  Downloading pillow-13.0.0-cp311-cp311-win_amd64.whl.metadata (9.3 kB)
+Collecting imageio!=2.35.0,>=2.33 (from scikit-image->insightface)
+  Downloading imageio-2.38.2-py3-none-any.whl.metadata (9.7 kB)
+Collecting tifffile>=2022.8.12 (from scikit-image->insightface)
+  Downloading tifffile-2026.3.3-py3-none-any.whl.metadata (31 kB)
+Collecting lazy-loader>=0.4 (from scikit-image->insightface)
+  Downloading lazy_loader-0.6-py3-none-any.whl.metadata (6.0 kB)
+Collecting colorama (from tqdm->insightface)
+  Using cached colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+Downloading insightface-2.1-py3-none-any.whl (1.2 MB)
+   ---------------------------------------- 1.2/1.2 MB 5.3 MB/s eta 0:00:00
+Using cached onnxruntime-1.32.0-cp311-cp311-win_amd64.whl (16.7 MB)
+Downloading opencv_python_headless-5.1.0.95-cp37-abi3-win_amd64.whl (47.8 MB)
+   ---------------------------------------- 47.8/47.8 MB 21.1 MB/s eta 0:00:00
+Using cached numpy-2.4.6-cp311-cp311-win_amd64.whl (12.6 MB)
+Downloading onnx-1.23.2-cp311-cp311-win_amd64.whl (7.9 MB)
+   ---------------------------------------- 7.9/7.9 MB 28.0 MB/s eta 0:00:00
+Using cached protobuf-7.36.2-cp310-abi3-win_amd64.whl (456 kB)
+Using cached flatbuffers-25.12.19-py2.py3-none-any.whl (26 kB)
+Downloading opencv_python-5.1.0.95-cp37-abi3-win_amd64.whl (48.0 MB)
+   ---------------------------------------- 48.0/48.0 MB 21.1 MB/s eta 0:00:00
+Using cached packaging-26.3-py3-none-any.whl (129 kB)
+Using cached requests-2.34.2-py3-none-any.whl (73 kB)
+Downloading scikit_image-0.26.0-cp311-cp311-win_amd64.whl (11.9 MB)
+   ---------------------------------------- 11.9/11.9 MB 28.5 MB/s eta 0:00:00
+Downloading scipy-1.17.1-cp311-cp311-win_amd64.whl (36.6 MB)
+   ---------------------------------------- 36.6/36.6 MB 27.3 MB/s eta 0:00:00
+Using cached tqdm-4.70.1-py3-none-any.whl (80 kB)
+Using cached certifi-2026.11.20-py3-none-any.whl (127 kB)
+Using cached charset_normalizer-3.5.3-cp311-cp311-win_amd64.whl (212 kB)
+Using cached idna-3.20-py3-none-any.whl (69 kB)
+Downloading imageio-2.38.2-py3-none-any.whl (328 kB)
+   --------------------------------------- 328.7/328.7 kB 10.3 MB/s eta 0:00:00
+Downloading lazy_loader-0.6-py3-none-any.whl (8.8 kB)
+Using cached ml_dtypes-0.7.0-cp311-cp311-win_amd64.whl (462 kB)
+Downloading networkx-3.6.1-py3-none-any.whl (2.1 MB)
+   ---------------------------------------- 2.1/2.1 MB 43.8 MB/s eta 0:00:00
+Downloading pillow-13.0.0-cp311-cp311-win_amd64.whl (7.3 MB)
+   ---------------------------------------- 7.3/7.3 MB 27.4 MB/s eta 0:00:00
+Downloading tifffile-2026.3.3-py3-none-any.whl (243 kB)
+   --------------------------------------- 244.0/244.0 kB 14.6 MB/s eta 0:00:00
+Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Using cached urllib3-2.8.0-py3-none-any.whl (135 kB)
+Using cached colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Installing collected packages: flatbuffers, urllib3, typing_extensions, protobuf, pillow, packaging, numpy, networkx, idna, colorama, charset_normalizer, certifi, tqdm, tifffile, scipy, requests, opencv-python-headless, opencv-python, onnxruntime, ml_dtypes, lazy-loader, imageio, scikit-image, onnx, insightface
+Successfully installed certifi-2026.11.20 charset_normalizer-3.5.3 colorama-0.4.6 flatbuffers-25.12.19 idna-3.20 imageio-2.38.2 insightface-2.1 lazy-loader-0.6 ml_dtypes-0.7.0 networkx-3.6.1 numpy-2.4.6 onnx-1.23.2 onnxruntime-1.32.0 opencv-python-5.1.0.95 opencv-python-headless-5.1.0.95 packaging-26.3 pillow-13.0.0 protobuf-7.36.2 requests-2.34.2 scikit-image-0.26.0 scipy-1.17.1 tifffile-2026.3.3 tqdm-4.70.1 typing_extensions-4.16.0 urllib3-2.8.0
+
+[notice] A new release of pip is available: 24.0 -> 26.3
+[notice] To update, run: C:\Dev\TASK A\experiments\envs\insightface\.venv\Scripts\python.exe -m pip install --upgrade pip
+### EXIT_CODE=0
+### SECONDS=50
+### NOTE (manual) pip install: clean, 50 s, prebuilt wheels on Python 3.11 (insightface 2.1, onnxruntime 1.32). No compiler needed. I listed onnxruntime + opencv-python-headless explicitly (insightface does not pull onnxruntime by itself).
+### NOTE (manual) Model pack buffalo_l (~280 MB zip) auto-downloaded from GitHub on first use into ~/.insightface/models. Needs internet only once.
+### NOTE (manual) Minor: FutureWarning from scikit-image (estimate deprecated) - harmless. Cold first call ~29 s (model load).
+### NOTE (manual) Total effort: 0 blocking problems. Smoke test ok: 1 face in LFW photos, 11 detections in group1 (10 real).
