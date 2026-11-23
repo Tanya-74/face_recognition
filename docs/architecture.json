@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "layout": {
+    "mode": "auto"
+  },
+  "meta": {
+    "title": "Offline face recognition app",
+    "output": "docs/architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Tanya-74/face_recognition.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "72cdf78dea7b590a77fbf4e101d7d0a178eac7ec"
+    }
+  },
+  "components": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "User",
+      "sublabel": "picks photos in the browser"
+    },
+    {
+      "id": "page",
+      "type": "frontend",
+      "label": "Web page",
+      "sublabel": "HTML, CSS, JS (no CDN)",
+      "tag": "slider runs here",
+      "sources": [
+        {
+          "path": "app/static/app.js",
+          "label": "page logic"
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI server",
+      "sublabel": "127.0.0.1:8000 only",
+      "sources": [
+        {
+          "path": "app/main.py",
+          "label": "API"
+        }
+      ]
+    },
+    {
+      "id": "engine",
+      "type": "backend",
+      "label": "Engine",
+      "sublabel": "resize, match, cache",
+      "sources": [
+        {
+          "path": "app/engine.py",
+          "label": "engine"
+        }
+      ]
+    },
+    {
+      "id": "cache",
+      "type": "database",
+      "label": "Embedding cache",
+      "sublabel": "in memory, per session",
+      "sources": [
+        {
+          "path": "app/engine.py",
+          "label": "Session class"
+        }
+      ]
+    },
+    {
+      "id": "backend",
+      "type": "backend",
+      "label": "Face backend",
+      "sublabel": "get_faces + distance",
+      "tag": "UniFace, swappable",
+      "sources": [
+        {
+          "path": "app/face_backend.py",
+          "label": "wrapper"
+        }
+      ]
+    },
+    {
+      "id": "models",
+      "type": "database",
+      "label": "Model files",
+      "sublabel": "models/*.onnx, CPU only",
+      "sources": [
+        {
+          "path": "app/face_backend.py",
+          "label": "loads from models/"
+        }
+      ]
+    },
+    {
+      "id": "net",
+      "type": "external",
+      "label": "Internet",
+      "sublabel": "setup only",
+      "sources": [
+        {
+          "path": "scripts/download_models.py",
+          "label": "download script"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Your computer: works with WiFi off",
+      "wraps": [
+        "user",
+        "page",
+        "api",
+        "engine",
+        "cache",
+        "backend",
+        "models"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "user-page",
+      "from": "user",
+      "to": "page",
+      "label": "folder + group photo",
+      "variant": "emphasis"
+    },
+    {
+      "id": "page-api",
+      "from": "page",
+      "to": "api",
+      "label": "photos in batches (HTTP)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-page",
+      "from": "api",
+      "to": "page",
+      "label": "faces, names, distances"
+    },
+    {
+      "id": "api-engine",
+      "from": "api",
+      "to": "engine",
+      "label": "calls"
+    },
+    {
+      "id": "engine-cache",
+      "from": "engine",
+      "to": "cache",
+      "label": "store / read",
+      "variant": "dashed"
+    },
+    {
+      "id": "engine-backend",
+      "from": "engine",
+      "to": "backend",
+      "label": "image in, faces out"
+    },
+    {
+      "id": "backend-models",
+      "from": "backend",
+      "to": "models",
+      "label": "loads ONNX"
+    },
+    {
+      "id": "net-models",
+      "from": "net",
+      "to": "models",
+      "label": "one-time download",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Offline",
+      "items": [
+        "Models are read from models/, never from the internet",
+        "The page loads no outside fonts, scripts or images"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Threshold",
+      "items": [
+        "Server returns nearest person and distance",
+        "The page applies the threshold, so the slider needs no server call"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Cache",
+      "items": [
+        "Known-people embeddings stay in memory until restart",
+        "Not stored on disk"
+      ]
+    }
+  ]
+}

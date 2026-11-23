@@ -15,3 +15,8 @@ __pycache__/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Archify (diagram tool): local install and work folders
+.archify/
+.claude/skills/
+skills-lock.json
