@@ -4,55 +4,91 @@ A small web app that runs **only on your computer**. You give it a folder of kno
 (one photo each, the file name is the person's name) and one group photo. It draws a box and
 a name on every face and lists the results. After the one-time setup it needs **no internet**.
 
-Face library: [UniFace](https://github.com/yakhyo/uniface) (SCRFD detector + ArcFace). Why this one:
-see [RESEARCH.md](RESEARCH.md).
+Face library: [UniFace](https://github.com/yakhyo/uniface) (SCRFD detector + ArcFace).
+Why this one: [RESEARCH.md](RESEARCH.md). How the app is built: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Install (fresh Windows laptop, once)
 
 You need internet for this part only.
 
-1. **Install Python 3.11.** Download it from <https://www.python.org/downloads/release/python-3119/>
-   (tick **"Add python.exe to PATH"**) or run `winget install Python.Python.3.11`.
-2. **Get the project.** `git clone https://github.com/Tanya-74/face_recognition.git`
-   (or download the ZIP from GitHub and unpack it), then open **PowerShell** in the project folder.
-3. **Create the environment and install the packages** (about 500 MB, a few minutes):
-   ```powershell
-   py -3.11 -m venv .venv
-   .venv\Scripts\python.exe -m pip install -r requirements.txt
-   ```
-4. **Download the face models once** (about 190 MB, saved in the `models\` folder):
-   ```powershell
-   .venv\Scripts\python.exe scripts\download_models.py
-   ```
-   You should see two lines starting with `OK`. The model files are not stored in git because they are
-   too big (`arcface_resnet.onnx` is 174 MB, `scrfd_10g.onnx` is 17 MB; GitHub refuses single files over 100 MB).
-   To set up a second computer that has no internet for step 4: copy the two `.onnx` files from this computer into
-   its `models\` folder instead. (Do not copy `.venv\`; a virtual environment only works on the computer that made it.)
+### 1. Python 3.11
+Download it from <https://www.python.org/downloads/release/python-3119/> and tick
+**"Add python.exe to PATH"** in the installer, or run `winget install Python.Python.3.11`.
+Check it: open PowerShell and run `py -3.11 --version`.
+
+### 2. Get the project
+```powershell
+git clone https://github.com/Tanya-74/face_recognition.git
+cd face_recognition
+```
+(or download the ZIP from GitHub, unpack it, and open PowerShell in that folder).
+
+### 3. Create the virtual environment and install the packages
+About 500 MB, a few minutes.
+```powershell
+py -3.11 -m venv .venv
+.venv\Scripts\activate
+python -m pip install -r requirements.txt
+```
+If PowerShell says scripts are disabled, skip the `activate` line and write
+`.venv\Scripts\python.exe` instead of `python` in the commands below.
+
+### 4. Get the two model files (about 190 MB)
+The models are not stored in git: `arcface_resnet.onnx` is 174 MB, and GitHub rejects single files over 100 MB.
+Use **one** of these two ways. Both end with the two files inside the `models\` folder.
+
+**Way A: download script** (easiest)
+```powershell
+python scripts\download_models.py
+```
+You should see two lines starting with `OK`. The script checks each file with a SHA-256 hash.
+
+**Way B: from the GitHub Release** (no script, e.g. if the script is blocked)
+1. Open the project's **Releases** page: <https://github.com/Tanya-74/face_recognition/releases>
+2. Download the two files `scrfd_10g.onnx` (17 MB) and `arcface_resnet.onnx` (174 MB) from the newest release.
+3. Put both in the `models\` folder of the project (next to `.gitkeep`).
+4. Optional check in PowerShell: `Get-FileHash models\*.onnx -Algorithm SHA256`. The hashes must be:
+
+   | File | SHA-256 |
+   |---|---|
+   | `scrfd_10g.onnx` | `5838f7fe053675b1c7a08b633df49e7af5495cee0493c7dcf6697200b85b5b91` |
+   | `arcface_resnet.onnx` | `4c06341c33c2ca1f86781dab0e829f88ad5b64be9fba56e56bc9ebdefc619e43` |
+
+> For the repository owner: a Release has to be created once by hand (GitHub, Releases, Draft a new release,
+> attach the two files from your `models\` folder). It is not created automatically.
+> To set up a computer that has no internet at all, copy the two `.onnx` files over by USB stick into `models\`.
+> (The Python packages in step 3 still need internet once.)
 
 ## Run
 
-Double-click **`run_app.bat`**. A black window opens (keep it open) and your browser opens
-<http://127.0.0.1:8000>. When the grey badge at the top turns green and says **"Ready - works offline"**, go on.
+**Easy way:** double-click **`run_app.bat`**. It activates the environment, starts the server and opens your
+browser at <http://127.0.0.1:8000>. Keep the black window open while you use the app; close it to stop the app.
 
-Or by hand: `.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000`
+**By hand** (in PowerShell, in the project folder):
+```powershell
+.venv\Scripts\activate
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+Then open <http://127.0.0.1:8000>. Stop with Ctrl+C.
 
-To stop: close the black window (or press Ctrl+C in it).
+When the badge at the top turns green and says **"Ready - works offline"**, you can start.
 
-## How to use it
+## Use the page (3 steps)
 
-1. **Choose folder**: pick the folder with the known people, for example `Priya Sharma.jpg`, `Tom Lee.png`.
-2. **Choose group photo**: one picture with several people.
-3. **Run**. A progress bar shows while the folder is read (about 0.5 to 2 seconds per photo on a normal CPU).
-   The result shows the photo with a box and a name on each face, and a list below with name, distance and
+1. **Choose the folder of known people.** One photo per person, named after them, for example
+   `Priya Sharma.jpg`, `Tom Lee.png`.
+2. **Choose one group photo** (JPG, PNG, BMP or WEBP).
+3. **Press Run.** A progress bar shows while the folder is read (about 0.5 to 2 seconds per photo on a normal CPU).
+   You get the group photo with a box and a name on every face, and a list below with name, distance and
    Known / Unknown.
-4. **Strictness slider** (default 0.62): lower = stricter (more "Unknown", fewer wrong names),
-   higher = more forgiving. It changes the labels at once without reading the photos again.
-   Press Run again with the same folder and it skips the folder step, because the results are cached
-   (until the app is restarted).
+
+**Strictness slider** (default 0.62): lower = stricter (more "Unknown", fewer wrong names); higher = more forgiving.
+It changes the labels at once without reading any photo again. Pressing Run again with the same folder skips the
+folder step (results are cached until the app is restarted).
 
 The distance is a cosine distance: 0 = identical, bigger = more different. In our test
-(see [RESEARCH.md](RESEARCH.md)) the range 0.55 to 0.80 gave no mistakes, but real photos are harder, so check
-the slider on your own photos.
+(see [RESEARCH.md](RESEARCH.md)) the range 0.55 to 0.80 gave no mistakes, but real photos are harder,
+so check the slider on your own photos.
 
 ### What happens with odd input
 
@@ -66,22 +102,37 @@ the slider on your own photos.
 | Phone photos (rotated by EXIF) | Turned upright automatically |
 | Group photo with no faces | Message "No faces were found..." |
 | Very large folder | Sent in small batches with a progress bar and a **Cancel** button. Limit: 5000 photos |
-| Models missing | The page shows "Face models not found" and tells you to run the download script |
+| Models missing | The page shows "Face models not found" and tells you to repeat step 4 |
 
 ## Test it with the WiFi turned off
 
-1. Finish the install above and run the app once while online (this also proves the models are in `models\`).
+1. Finish the install above and run the app once while online. This also proves the models are in `models\`.
 2. Close the app. **Turn WiFi off** (and unplug any network cable). Airplane mode is the easiest:
-   Windows key, then Airplane mode. Open a browser tab on any website to check that there is really no internet.
-3. Double-click `run_app.bat` again. The page opens at `http://127.0.0.1:8000` (that address is your own computer,
-   so it works without internet) and the badge turns green: **"Ready - works offline"**.
+   Windows key, then Airplane mode. Open any website in a browser tab to check that there really is no internet.
+3. Double-click `run_app.bat` again. The page opens at `http://127.0.0.1:8000` (that address is your own
+   computer, so it works without internet) and the badge turns green: **"Ready - works offline"**.
 4. Choose a folder and a group photo, press Run. It should work exactly as before.
-5. Optional proof: the app also has an automatic test that blocks all network access for the server:
-   `.venv\Scripts\python.exe tests\test_app.py` (takes 2 to 4 minutes, prints PASS / FAIL for 23 checks).
+5. Optional proof: an automatic test starts the server with all network access blocked and checks 23 things:
+   `python tests\test_app.py` (2 to 4 minutes, prints PASS or FAIL for each).
 
-If something needs the internet, the badge shows an error instead of green. The page itself loads no
-fonts, scripts or images from the web (everything is in `app\static\`), and the server listens on
-127.0.0.1 only, so other computers on your network cannot reach it.
+If something needed the internet, the badge would show an error instead of green. The page loads no fonts,
+scripts or images from the web (everything is in `app\static\`), and the server listens on 127.0.0.1 only, so
+other computers on your network cannot reach it.
+
+## Troubleshooting
+
+| Problem | What to do |
+|---|---|
+| `py` is not recognised | Python 3.11 is missing or not on PATH. Repeat step 1 and reopen PowerShell. |
+| PowerShell: "running scripts is disabled" | Do not use `activate`. Write `.venv\Scripts\python.exe` instead of `python`. (`run_app.bat` is not affected.) |
+| Badge says "Face models not found" or the page says "Model files missing" | The `.onnx` files are not in `models\`. Repeat step 4 (way A or B). Both files must be there. |
+| `download_models.py` says "Could not get ..." | No internet or a blocked connection. Fix the connection, or use way B. |
+| `pip install` fails | Check that `py -3.11 --version` works and you are online. Run the command again. |
+| The page does not open / "Cannot reach the app" | The black window must stay open. If it shows an error, read it. Port 8000 may be taken: start by hand with `--port 8001` and open <http://127.0.0.1:8001>. |
+| "Your session expired" | The app was restarted. Choose the folder again and press Run. |
+| First Run is very slow | Normal for a big folder (every photo is read once). The first start can also be slow while Windows scans the new files. |
+| Someone who should be known shows as Unknown | Raise the slider a little, and check that their folder photo shows the face clearly, looking at the camera. |
+| A stranger gets a name | Lower the slider. |
 
 ## Project layout
 
@@ -89,26 +140,13 @@ fonts, scripts or images from the web (everything is in `app\static\`), and the 
 app/main.py            web server (FastAPI) and the JSON API
 app/engine.py          image preparation, cached embeddings, matching
 app/face_backend.py    the face library behind two functions: get_faces(image), distance(a, b)
-app/static/            the page (index.html, style.css, app.js, favicon.svg) - all local
-models/                the two .onnx model files (downloaded once, not in git)
+app/static/            the page (index.html, style.css, app.js, favicon.svg), all local
+models/                the two .onnx model files (not in git)
 scripts/download_models.py   one-time model download
 tests/test_app.py      end-to-end test with edge cases
 run_app.bat            start script
+docs/                  architecture diagram (SVG, PNG, interactive HTML) and its source
 experiments/           the library comparison (smoke tests, full evaluation, charts)
 RESEARCH.md            results of the comparison
+ARCHITECTURE.md        how the app is built, and the trade-offs
 ```
-
-To swap the face library later, write a module with the same two functions as `app/face_backend.py`
-(`get_faces` returns `[((x, y, w, h), embedding), ...]`, `distance` returns a number, lower = more similar)
-and change the `import face_backend` line in `app/engine.py` and `app/main.py`.
-
-## Troubleshooting
-
-- **"Model files missing ..."**: run step 4 of the install again.
-- **`py` is not recognised**: Python 3.11 is not installed or not on PATH; repeat step 1.
-- **The page does not open**: look at the black window for an error. Port 8000 may be used by another program;
-  start by hand with `--port 8001` and open <http://127.0.0.1:8001>.
-- **Very slow first Run**: the first photos can take longer while Windows scans the new files.
-  Later runs are faster.
-- **A name is wrong or Unknown for someone who should be known**: move the slider, and make sure the folder photo
-  shows that person clearly, looking at the camera.
