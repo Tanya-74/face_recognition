@@ -16,6 +16,7 @@ const el = {
   stats: $("stats"), statTotal: $("stat-total"), statKnown: $("stat-known"), statUnknown: $("stat-unknown"),
   chips: $("chips"), chipAll: $("chip-all"), chipKnown: $("chip-known"), chipUnknown: $("chip-unknown"),
   gallery: $("gallery"), galleryTitle: $("gallery-title"), galleryGrid: $("gallery-grid"), galleryMore: $("gallery-more"),
+  tools: $("tools"), dlPng: $("dl-png"), dlCsv: $("dl-csv"),
   notes: $("notes"), notesTitle: $("notes-title"), notesList: $("notes-list"),
 };
 
@@ -417,7 +418,7 @@ function render() {
     el.summary.textContent = `${plural(faces.length, "face", "faces")} found: ${knownCount} known, ${faces.length - knownCount} unknown.`;
   }
   el.summary.classList.toggle("visually-hidden", faces.length > 0);   // the cards show the numbers
-  el.stats.hidden = !faces.length;
+  el.stats.hidden = el.tools.hidden = !faces.length;
   el.statTotal.textContent = faces.length;
   el.statKnown.textContent = knownCount;
   el.statUnknown.textContent = faces.length - knownCount;
@@ -451,16 +452,19 @@ function drawCanvas() {
   const img = state.image;
   const c = el.canvas;
   if (c.width !== img.naturalWidth) { c.width = img.naturalWidth; c.height = img.naturalHeight; }
+  paint(c, visibleFaces(), activeId(), state.reveal);
+}
+
+/* draws the photo and the face boxes on any canvas (the page, or a hidden one for the PNG download) */
+function paint(c, faces, act, rv) {
   const g = c.getContext("2d");
-  g.drawImage(img, 0, 0);
+  g.drawImage(state.image, 0, 0, c.width, c.height);
   const fontPx = Math.max(15, Math.round(c.width / 55));
   const line = Math.max(2, Math.round(c.width / 450));
   g.font = `600 ${fontPx}px "Segoe UI", system-ui, Arial, sans-serif`;
   g.textBaseline = "middle";
-  const act = activeId();
-  const rv = state.reveal;                     // {start, n, dur} while the boxes fade in
   const now = performance.now();
-  visibleFaces().forEach((f, k) => {
+  faces.forEach((f, k) => {
     g.globalAlpha = rv ? Math.min(1, Math.max(0, ((now - rv.start) - (k / Math.max(1, rv.n)) * rv.dur) / 300)) : 1;
     const x = f.box.x * c.width, y = f.box.y * c.height, w = f.box.w * c.width, h = f.box.h * c.height;
     const color = f.known ? "#17803d" : "#b45309";
@@ -477,6 +481,38 @@ function drawCanvas() {
   });
   g.globalAlpha = 1;
 }
+
+/* ---------- downloads (made in the browser, nothing is sent anywhere) ---------- */
+function baseName() {
+  const n = state.groupFile ? state.groupFile.name.replace(/\.[^.]*$/, "") : "group";
+  return n.replace(/[\/:*?"<>|]+/g, "_").trim() || "group";
+}
+function saveBlob(blob, filename) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+el.dlPng.addEventListener("click", () => {
+  if (!state.image || !state.faces.length) return;
+  const c = document.createElement("canvas");
+  c.width = state.image.naturalWidth; c.height = state.image.naturalHeight;
+  paint(c, state.faces, null, null);           // all faces, current strictness, no highlight
+  c.toBlob((b) => b ? saveBlob(b, baseName() + "_annotated.png") : showError("The picture could not be saved."), "image/png");
+});
+function csvCell(v) {
+  let t = String(v);
+  if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;      // stops spreadsheets from treating a name as a formula
+  return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+el.dlCsv.addEventListener("click", () => {
+  if (!state.faces.length) return;
+  const t = Number(el.threshold.value).toFixed(2);
+  const rows = [["Face number", "Name", "Status", "Distance", "Closest known person", "Strictness used", "Group photo"]];
+  state.faces.forEach((f) => rows.push([f.id, f.name, f.known ? "Known" : "Unknown", f.distance.toFixed(3), f.nearest, t, state.groupFile ? state.groupFile.name : ""]));
+  const text = "\uFEFF" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";   // BOM so Excel shows accents correctly
+  saveBlob(new Blob([text], { type: "text/csv;charset=utf-8" }), baseName() + "_results.csv");
+});
 
 /* boxes appear one after another; skipped when the computer asks for less motion */
 function startReveal() {

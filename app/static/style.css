@@ -143,6 +143,8 @@ output {
 .stat.known .stat-num { color: var(--known); }
 .stat.unknown .stat-num { color: var(--unknown); }
 .stat-label { display: block; color: var(--muted); font-size: .95rem; }
+.tools { display: flex; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
+.tools .btn.small { margin-top: 0; }
 .stage {
   background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
   padding: 10px; text-align: center;
