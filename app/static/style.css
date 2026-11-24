@@ -113,6 +113,11 @@ table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); }
 th { background: #f0f3f8; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 tr:last-child td { border-bottom: 0; }
+.thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); background: #e5eaf2; display: block; }
+.thumb.ref { width: 44px; height: 44px; border-radius: 50%; flex: none; }
+.name-wrap { display: flex; align-items: center; gap: 12px; }
+.person { font-weight: 600; display: block; }
+td.face-cell { width: 76px; }
 tbody tr { cursor: pointer; }
 tbody tr.hover td { background: #eef3fd; }
 tbody tr.selected td { background: #dde8fb; }
@@ -138,6 +143,10 @@ footer { margin-top: 36px; text-align: center; color: var(--muted); font-size: .
   html { font-size: 17px; }
   .card { flex-direction: column; gap: 12px; padding: 18px; }
   .btn { width: 100%; }
+  .thumb { width: 44px; height: 44px; }
+  .thumb.ref { width: 32px; height: 32px; }
+  .name-wrap { gap: 8px; }
+  td.face-cell { width: 56px; }
   .stats { gap: 8px; }
   .stat { padding: 10px 6px; }
   .stat-num { font-size: 1.9rem; }

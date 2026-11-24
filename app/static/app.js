@@ -20,6 +20,9 @@ const el = {
 const state = {
   ready: false,
   folderFiles: [],          // accepted picture files from the folder
+  people: new Map(),        // person name -> first picture file with that name (for showing the matched photo)
+  photoUrls: new Map(),     // person name -> local object URL (made on demand, never uploaded)
+  crops: [],                // small face pictures cut from the group photo, by face number
   folderIgnored: 0,         // files that were not pictures
   groupFile: null,
   sessionId: null,
@@ -42,6 +45,40 @@ function showError(msg, warn = false) {
 }
 function clearError() { el.error.hidden = true; el.error.textContent = ""; }
 function plural(n, one, many) { return `${n} ${n === 1 ? one : many}`; }
+/* same rule as the server: 'dir/Priya Sharma.jpg' -> 'Priya Sharma' */
+function personName(filename) {
+  const base = filename.split(/[\\/]/).pop();
+  const dot = base.lastIndexOf(".");
+  return (dot > 0 ? base.slice(0, dot) : base).trim();
+}
+function indexPeople() {
+  state.photoUrls.forEach((u) => URL.revokeObjectURL(u));
+  state.photoUrls.clear();
+  state.people = new Map();
+  state.folderFiles.forEach((f) => {
+    const n = personName(f.name);
+    if (n && !state.people.has(n)) state.people.set(n, f);
+  });
+}
+function photoUrl(name) {
+  if (!state.people.has(name)) return null;
+  if (!state.photoUrls.has(name)) state.photoUrls.set(name, URL.createObjectURL(state.people.get(name)));
+  return state.photoUrls.get(name);
+}
+/* a small square picture of one face, cut from the group photo in the browser */
+function makeCrops() {
+  const img = state.image, W = img.naturalWidth, H = img.naturalHeight, OUT = 112;
+  state.crops = state.analysis.faces.map((f) => {
+    const bw = f.box.w * W, bh = f.box.h * H;
+    const side = Math.max(bw, bh) * 1.5;                       // a little room around the face
+    let sx = f.box.x * W + bw / 2 - side / 2, sy = f.box.y * H + bh / 2 - side / 2;
+    sx = Math.min(Math.max(0, sx), Math.max(0, W - side)); sy = Math.min(Math.max(0, sy), Math.max(0, H - side));
+    const s = Math.min(side, W, H);
+    const c = document.createElement("canvas"); c.width = c.height = OUT;
+    c.getContext("2d").drawImage(img, sx, sy, s, s, 0, 0, OUT, OUT);
+    return c.toDataURL("image/jpeg", 0.85);
+  });
+}
 function folderKey() {
   return state.folderFiles.map((f) => `${f.name}|${f.size}|${f.lastModified}`).join("\n");
 }
@@ -105,6 +142,7 @@ el.folderInput.addEventListener("change", () => {
   const all = Array.from(el.folderInput.files);
   state.folderFiles = all.filter((f) => IMAGE_EXT.test(f.name));
   state.folderIgnored = all.length - state.folderFiles.length;
+  indexPeople();
   if (!all.length) {
     el.folderInfo.textContent = "";
   } else if (!state.folderFiles.length) {
@@ -212,6 +250,7 @@ async function analyseGroup() {
   state.analysis = data;
   state.hoverId = state.selectedId = null;
   state.image = await loadImage(data.image);
+  makeCrops();
   el.results.hidden = false;
   render();
   showNotes();
@@ -356,28 +395,38 @@ function buildRows() {
     tr.dataset.id = f.id;
     tr.tabIndex = 0;
     tr.title = "Click to select this face";
-    const cells = [String(f.id), null, f.distance.toFixed(3), null];
-    cells.forEach((txt, i) => {
-      const td = document.createElement("td");
-      if (i === 1) {
-        td.textContent = f.name;
-        td.style.fontWeight = "600";
-        if (!f.known) {
-          const hint = document.createElement("span");
-          hint.className = "hint";
-          hint.textContent = `closest: ${f.nearest}`;
-          td.appendChild(hint);
-        }
-      } else if (i === 3) {
-        const b = document.createElement("span");
-        b.className = "badge " + (f.known ? "known" : "unknown");
-        b.textContent = f.known ? "Known" : "Unknown";
-        td.appendChild(b);
-      } else {
-        td.textContent = txt;
-      }
-      tr.appendChild(td);
-    });
+    const cell = (cls) => { const td = document.createElement("td"); if (cls) td.className = cls; tr.appendChild(td); return td; };
+    cell().textContent = String(f.id);
+
+    const faceTd = cell("face-cell");
+    const crop = document.createElement("img");
+    crop.className = "thumb"; crop.alt = `Face ${f.id} in the group photo`; crop.src = state.crops[f.id - 1] || "";
+    faceTd.appendChild(crop);
+
+    const nameTd = cell("name");
+    const wrap = document.createElement("div"); wrap.className = "name-wrap";
+    const url = f.known ? photoUrl(f.nearest) : null;
+    if (url) {
+      const ref = document.createElement("img");
+      ref.className = "thumb ref"; ref.alt = `Photo of ${f.nearest} from the folder`; ref.src = url;
+      ref.decoding = "async"; ref.addEventListener("error", () => ref.remove());
+      wrap.appendChild(ref);
+    }
+    const txt = document.createElement("div");
+    const nm = document.createElement("span"); nm.className = "person"; nm.textContent = f.name; txt.appendChild(nm);
+    if (!f.known) {
+      const hint = document.createElement("span");
+      hint.className = "hint";
+      hint.textContent = `closest: ${f.nearest}`;
+      txt.appendChild(hint);
+    }
+    wrap.appendChild(txt); nameTd.appendChild(wrap);
+
+    cell().textContent = f.distance.toFixed(3);
+    const b = document.createElement("span");
+    b.className = "badge " + (f.known ? "known" : "unknown");
+    b.textContent = f.known ? "Known" : "Unknown";
+    cell().appendChild(b);
     tr.addEventListener("mouseenter", () => setHover(f.id));
     tr.addEventListener("mouseleave", () => setHover(null));
     tr.addEventListener("focus", () => setHover(f.id));
