@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Who is in the photo?</title>
+  <title>Face Recognition</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -13,27 +13,26 @@
     <!-- top bar: title, status, the three actions, and the two pop-up buttons -->
     <header class="topbar">
       <div class="brand">
-        <h1>Who is in the photo?</h1>
-        <div class="brand-row">
-          <p id="engine-status" class="pill" role="status">Starting up...</p>
-          <span class="lib-note" id="lib"></span>
-        </div>
+        <h1>Face Recognition</h1>
+        <!-- shown only while the models load, or when something is wrong -->
+        <p id="engine-status" class="pill" role="status">Starting up...</p>
       </div>
 
       <div class="actions">
-        <div class="act">
-          <button id="pick-folder" class="btn sm" type="button">Choose folder</button>
+        <div class="row">
+          <button id="run" class="btn primary sm" type="button" disabled>Run</button>
+          <button id="cancel" class="btn secondary sm" type="button" hidden>Cancel</button>
+        </div>
+        <!-- file names, with a small link to pick again (the big drop zones do the first pick) -->
+        <div class="files">
+        <div id="chip-folder" class="file-chip" hidden>
           <span id="folder-info" class="file-note" aria-live="polite"></span>
+          <button id="pick-folder" class="link" type="button">Change folder</button>
         </div>
-        <div class="act">
-          <button id="pick-group" class="btn sm" type="button">Choose group photo</button>
+        <div id="chip-group" class="file-chip" hidden>
           <span id="group-info" class="file-note" aria-live="polite"></span>
+          <button id="pick-group" class="link" type="button">Change photo</button>
         </div>
-        <div class="act">
-          <div class="row">
-            <button id="run" class="btn primary sm" type="button" disabled>Run</button>
-            <button id="cancel" class="btn secondary sm" type="button" hidden>Cancel</button>
-          </div>
         </div>
       </div>
 

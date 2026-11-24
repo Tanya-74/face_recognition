@@ -37,19 +37,24 @@ h1, h2, h3, p { margin: 0; }
   flex: none; display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px;
   padding: 10px 20px; background: #fff; border-bottom: 1px solid var(--line); box-shadow: var(--shadow);
 }
+.brand { display: flex; align-items: center; gap: 12px; }
 .brand h1 { font-size: 1.3rem; line-height: 1.2; letter-spacing: -.01em; }
-.brand-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-.lib-note { font-size: .78rem; color: var(--muted); }
 .pill {
   display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: .78rem;
   background: #fff4d6; color: #7a5200; border: 1px solid #f0d58a;
 }
-.pill.ok { background: #e3f5e9; color: #115c2b; border-color: #a9dcb9; }
 .pill.bad { background: var(--error-bg); color: var(--error); border-color: #f1b5ae; }
 
-.actions { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; min-width: 0; }
-.act { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
-.file-note { font-size: .78rem; color: var(--muted); max-width: 150px; min-height: 1.1em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-width: 0; }
+.files { display: flex; flex-direction: column; min-width: 0; }
+.file-chip { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.file-note { font-size: .82rem; color: var(--muted); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link {
+  font: inherit; font-size: .82rem; font-weight: 600; color: var(--primary); background: none; border: 0;
+  padding: 4px 2px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap;
+}
+.link:hover:not(:disabled) { color: var(--primary-dark); }
+.link:disabled { opacity: .45; cursor: not-allowed; }
 .row { display: flex; gap: 10px; }
 .top-extra { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .top-extra .btn { padding: 0 13px; font-size: .92rem; }
@@ -255,10 +260,10 @@ dialog.drawer::backdrop { background: rgba(16, 24, 40, .4); }
   .app { height: auto; min-height: 100vh; overflow: visible; }
   .topbar { padding: 10px 14px; }
   .actions { flex-basis: 100%; }
-  .act { flex: 1 1 140px; }
-  .act .btn, .row .btn { width: 100%; }
   .row { width: 100%; }
-  .file-note { max-width: none; }
+  .row .btn { flex: 1; }
+  .file-chip { flex: 1 1 100%; }
+  .file-note { max-width: none; flex: 1; }
   .top-extra { margin-left: 0; flex-basis: 100%; }
   .top-extra { flex-wrap: wrap; }
   .tools { display: contents; }               /* the download buttons join the row of buttons */

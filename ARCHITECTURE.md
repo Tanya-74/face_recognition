@@ -45,7 +45,7 @@ It never talks to anything except this app's own API. Everything below happens *
 
 ```
 +----------------------------------------------------------------------------------------------+
-| Title, status | [Choose folder] [Choose group photo] [Run] | [Known people] [Folder notes] [PNG] [CSV] |  top bar
+| Face Recognition | [Run] file names + Change links |        [Known people] [Folder notes] [PNG] [CSV] |  top bar
 +---------------------------------------------+------------------------------------------------+
 |                                             |  11 faces | 7 known | 4 unknown                |
 |  group photo, scaled to fit                 |  [ All ] [ Known ] [ Unknown ]                 |
@@ -58,9 +58,10 @@ It never talks to anything except this app's own API. Everything below happens *
 
 | What you see | How it works |
 |---|---|
-| **Top bar** | The three actions as compact buttons, with the chosen folder and photo names in small text beneath them (cut with "..." when long; the full text is the tooltip). Cancel appears only while running. The free space on the right holds the "Known people" and "Folder notes" buttons (they appear when there is something to show) and the two download buttons (they appear when there is a result, and are hidden while a run is working so Cancel has room). The small text next to the green status pill names the face library; "offline" is said only once, in the pill. |
-| **Empty state with two drop zones** | Before the first result the left area shows two big dashed zones (folder, group photo) and one line of help. They light up while you drag over them, turn green when filled, and can also be clicked. Dropping is ignored while Run is working. |
-| **Drop after a result** | Once a result is on screen the zones are gone; the whole photo area accepts drops instead: one picture means a new group photo, a folder (or several files) means a new folder. A dropped folder is read with the browser's folder API; if the browser cannot do that, the dropped files are used. |
+| **Top bar** | The title "Face Recognition", the Run button (and Cancel while running) and, once something is chosen, the file names with small "Change folder" / "Change photo" links (cut with "..." when long; the full text is the tooltip). The free space on the right holds the "Known people" and "Folder notes" buttons (they appear when there is something to show) and the two download buttons (they appear when there is a result, and are hidden while a run is working so Cancel has room). |
+| **Status pill** | Shown only while the face models are loading ("Starting up...") or when something is wrong (red, e.g. "Face models not found", with the full message in a banner). When everything is ready there is no pill and no library name: Run simply becomes usable. |
+| **Empty state with two drop zones** | Before the first result the left area shows two big dashed zones (folder, group photo) and one line of help. They are the way to choose: click a zone, or drag onto it. They light up while you drag over them, turn green when filled, and are keyboard-reachable buttons. Dropping is ignored while Run is working. |
+| **Drop after a result** | Once a result is on screen the zones are gone; the "Change folder" / "Change photo" links in the top bar pick again, and the whole photo area accepts drops: one picture means a new group photo, a folder (or several files) means a new folder. A dropped folder is read with the browser's folder API; if the browser cannot do that, the dropped files are used. |
 | **Photo with boxes** | A `<canvas>` that a small script sizes to fit its area exactly (aspect ratio kept, redone whenever the window changes size). Hovering a box highlights it and its card; clicking selects it. The boxes fade in one by one after Run. |
 | **Name labels that do not pile up** | Each label first tries the spot above its box. If there is no room, or it would cover another label, the text is shrunk (down to 60 %), then tried inside the box (shortened with "..." to fit the box width), then below the box. The last resort is just the face number. Big faces get the best spots first. Boxes are drawn before labels so no box line crosses a name. |
 | **Summary numbers and filter chips** | Faces / Known / Unknown at the top of the right panel, counted from the answer the server already gave using the current slider value. The chips (All / Known / Unknown) hide cards and boxes in the browser. |

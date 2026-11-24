@@ -6,7 +6,7 @@ const IMAGE_EXT = /\.(jpe?g|png|bmp|webp)$/i;
 const BATCH = 6;                       // folder photos sent per request
 
 const el = {
-  status: $("engine-status"), error: $("error"), lib: $("lib"),
+  status: $("engine-status"), error: $("error"),
   pickFolder: $("pick-folder"), folderInput: $("folder-input"), folderInfo: $("folder-info"), zoneFolder: $("zone-folder"),
   pickGroup: $("pick-group"), groupInput: $("group-input"), groupInfo: $("group-info"), zoneGroup: $("zone-group"),
   run: $("run"), cancel: $("cancel"),
@@ -94,8 +94,14 @@ function folderKey() {
   return state.folderFiles.map((f) => `${f.name}|${f.size}|${f.lastModified}`).join("\n");
 }
 /* the short text under the buttons and inside the drop zones */
-function setFolderNote(text) { el.folderInfo.textContent = text; el.folderInfo.title = text; el.zoneFolder.textContent = text; }
-function setGroupNote(text) { el.groupInfo.textContent = text; el.groupInfo.title = text; el.zoneGroup.textContent = text; }
+function setFolderNote(text) {
+  el.folderInfo.textContent = text; el.folderInfo.title = text; el.zoneFolder.textContent = text;
+  $("chip-folder").hidden = !text;             // the name and its "Change folder" link show once something is chosen
+}
+function setGroupNote(text) {
+  el.groupInfo.textContent = text; el.groupInfo.title = text; el.zoneGroup.textContent = text;
+  $("chip-group").hidden = !text;
+}
 function updateRunButton() {
   $("drop-folder").classList.toggle("done", state.folderFiles.length > 0);   // green when a step is finished
   $("drop-group").classList.toggle("done", !!state.groupFile);
@@ -126,28 +132,29 @@ async function api(path, options) {
   return body;
 }
 
-/* ---------- engine status ---------- */
+/* ---------- engine status: a pill only while loading or when something is wrong ---------- */
+function setStatus(text, kind) {
+  el.status.hidden = kind === "ok";
+  el.status.textContent = text;
+  el.status.className = "pill" + (kind === "bad" ? " bad" : "");
+}
 async function pollStatus() {
   try {
     const s = await api("/api/status");
-    el.lib.textContent = s.library;
     if (s.error) {
-      el.status.textContent = "Face models not found";
-      el.status.className = "pill bad";
+      setStatus("Face models not found", "bad");
       showError(s.error);
       return;
     }
     if (s.ready) {
       state.ready = true;
-      el.status.textContent = "Ready - works offline";
-      el.status.className = "pill ok";
+      setStatus("", "ok");                      // all good: nothing to show
       updateRunButton();
       return;
     }
-    el.status.textContent = "Starting up (loading the face models)...";
+    setStatus("Starting up...", "loading");
   } catch (e) {
-    el.status.textContent = "Not connected";
-    el.status.className = "pill bad";
+    setStatus("Not connected", "bad");
   }
   setTimeout(pollStatus, 1000);
 }
