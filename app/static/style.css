@@ -89,6 +89,19 @@ output {
 
 #results { margin-top: 28px; }
 .summary { font-size: 1.1rem; font-weight: 600; margin: 0 0 14px; }
+.summary.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 0 0 18px; }
+.stat {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+  border-top: 5px solid var(--primary); padding: 14px 18px; text-align: center;
+  box-shadow: 0 1px 2px rgba(20, 30, 50, .05);
+}
+.stat.known { border-top-color: var(--known); }
+.stat.unknown { border-top-color: var(--unknown); }
+.stat-num { display: block; font-size: 2.4rem; font-weight: 700; line-height: 1.1; }
+.stat.known .stat-num { color: var(--known); }
+.stat.unknown .stat-num { color: var(--unknown); }
+.stat-label { display: block; color: var(--muted); font-size: .95rem; }
 .stage {
   background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
   padding: 10px; text-align: center;
@@ -120,6 +133,10 @@ footer { margin-top: 36px; text-align: center; color: var(--muted); font-size: .
   html { font-size: 17px; }
   .card { flex-direction: column; gap: 12px; padding: 18px; }
   .btn { width: 100%; }
+  .stats { gap: 8px; }
+  .stat { padding: 10px 6px; }
+  .stat-num { font-size: 1.9rem; }
+  .stat-label { font-size: .85rem; }
   th, td { padding: 10px 8px; font-size: .9rem; }
   .badge { padding: 2px 8px; font-size: .8rem; }
   main { padding: 24px 14px 40px; }

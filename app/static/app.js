@@ -13,6 +13,7 @@ const el = {
   progress: $("progress"), barFill: $("bar-fill"), progressText: $("progress-text"),
   threshold: $("threshold"), thresholdValue: $("threshold-value"),
   results: $("results"), summary: $("summary"), canvas: $("canvas"), rows: $("rows"),
+  stats: $("stats"), statTotal: $("stat-total"), statKnown: $("stat-known"), statUnknown: $("stat-unknown"),
   notes: $("notes"), notesTitle: $("notes-title"), notesList: $("notes-list"),
 };
 
@@ -249,12 +250,17 @@ function render() {
   const faces = a.faces.map((f) => ({ ...f, ...labelFor(f, t) }));
 
   /* summary */
+  const knownCount = faces.filter((f) => f.known).length;
   if (!faces.length) {
     el.summary.textContent = "No faces were found in the group photo. Try a clearer or larger photo.";
   } else {
-    const k = faces.filter((f) => f.known).length;
-    el.summary.textContent = `${plural(faces.length, "face", "faces")} found: ${k} known, ${faces.length - k} unknown.`;
+    el.summary.textContent = `${plural(faces.length, "face", "faces")} found: ${knownCount} known, ${faces.length - knownCount} unknown.`;
   }
+  el.summary.classList.toggle("visually-hidden", faces.length > 0);   // the cards show the numbers
+  el.stats.hidden = !faces.length;
+  el.statTotal.textContent = faces.length;
+  el.statKnown.textContent = knownCount;
+  el.statUnknown.textContent = faces.length - knownCount;
 
   /* picture with boxes */
   const c = el.canvas;

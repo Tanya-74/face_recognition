@@ -77,6 +77,11 @@
     <section id="results" hidden aria-labelledby="rh">
       <h2 id="rh">Result</h2>
       <p id="summary" class="summary" aria-live="polite"></p>
+      <div id="stats" class="stats" hidden>
+        <div class="stat total"><span class="stat-num" id="stat-total">0</span><span class="stat-label">Faces found</span></div>
+        <div class="stat known"><span class="stat-num" id="stat-known">0</span><span class="stat-label">Known</span></div>
+        <div class="stat unknown"><span class="stat-num" id="stat-unknown">0</span><span class="stat-label">Unknown</span></div>
+      </div>
       <div class="stage"><canvas id="canvas" aria-label="Group photo with a box and a name on each face"></canvas></div>
       <h3>Faces found</h3>
       <div class="table-wrap">
