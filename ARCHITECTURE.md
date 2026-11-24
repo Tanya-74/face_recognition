@@ -71,15 +71,18 @@ It never talks to anything except this app's own API. Everything below happens *
 | **Downloads** (top bar) | The annotated photo ("Download PNG", all faces at the current slider value) and the results ("Download CSV", UTF-8 with a BOM so Excel shows accents correctly; names that start with `=`, `+`, `-` or `@` get a leading `'` so a spreadsheet cannot treat them as a formula). Both files are made in the browser. |
 | **Bottom bar** | Only the strictness slider with its value and a one-line explanation. |
 | **Phones and very short windows** | Under 900 px wide the parts stack and the page scrolls normally. In a window shorter than 520 px the page may also scroll, rather than squashing everything. |
+| **Dark theme** | The page has one look: dark. The page is near-black (`#0b0d12`), panels and cards are slightly lighter (`#14171f`, `#1b1f2a`) with thin borders, main text is soft white and helper text grey. There is one blue accent (Run, the slider, the selected filter, links); Known is green and Unknown is amber. All colours are variables at the top of `style.css`, and `color-scheme: dark` makes scrollbars, drawers and the browser's own controls dark too. On the photo, boxes use bright colours with a thin dark outline, and each name label has a solid green or amber background (white text) with its own dark outline, so they stay readable on both light and dark parts of a photo. The downloaded PNG uses the same drawing. Drop zones have a light-grey dashed border that glows blue on hover and while a file is dragged over them. |
 | **Animations** | Short and subtle. If the computer is set to "reduce motion" (`prefers-reduced-motion`), animations and smooth scrolling are switched off. |
 
 What did **not** change: the server, the API and the models. The page still receives the nearest person and the distance for
 every face, and decides "Known / Unknown" itself (see the trade-off below).
 
+**Dark theme: how it was checked.** The browser test measures the text contrast of every visible piece of text in each state (empty, ready, running, result, hovered and selected card, filters, error and warning banners, both drawers, the loading and error pills) against the WCAG AA limit (4.5:1 for normal text). That check found one real problem (the count in the selected filter chip was 3.2:1), which was fixed. It cannot judge the text drawn on the photo, so the label colours were chosen by calculation (white on the green label 5.0:1, on the amber label 5.0:1) and checked by sampling the painted pixels.
+
 **UI trade-offs.** There is no framework, so the code is one long `app.js` that keeps its state in a single object; this
 keeps the page free of outside code and easy to read from top to bottom, but it will get harder to change if the page grows a lot.
 Fitting everything on one screen means the photo is shown smaller than it would be on a scrolling page (a very wide photo is
-limited by the width of its area), and only about four face cards are visible at once on a 1366x650 browser window; the list scrolls.
+limited by the width of its area), dark-only means no light or high-brightness option for a bright room, and only about four face cards are visible at once on a 1366x650 browser window; the list scrolls.
 The matched folder photos and the gallery use the original files, so a folder of huge photos makes those thumbnails slow to
 appear (the drawer therefore builds only when opened and loads lazily). Everything above is tested with a headless
 Edge browser (synthetic drag events, real downloads, three window sizes), **not** by dropping a real folder from Windows Explorer or on other browsers.

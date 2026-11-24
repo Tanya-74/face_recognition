@@ -437,7 +437,13 @@ function labelFor(face, t) {
   return { known, name: known ? face.nearest : "Unknown" };
 }
 
+function updateFill() {                       // paints the blue part of the slider track
+  const t = el.threshold, pct = (Number(t.value) - Number(t.min)) / (Number(t.max) - Number(t.min)) * 100;
+  t.style.setProperty("--fill", pct + "%");
+}
+updateFill();
 el.threshold.addEventListener("input", () => {
+  updateFill();
   el.thresholdValue.textContent = Number(el.threshold.value).toFixed(2);
   if (state.analysis) render();
 });
@@ -570,20 +576,26 @@ function paint(c, faces, act, rv, opts = {}) {
   const now = performance.now();
   g.textBaseline = "middle";
   const alphaOf = (f) => rv ? Math.min(1, Math.max(0, ((now - rv.start) - (faces.indexOf(f) / Math.max(1, rv.n)) * rv.dur) / 300)) : 1;
-  const colorOf = (f) => (f.known ? "#17803d" : "#b45309");
+  /* bright box colours; solid, darker label colours so that white text on them is easy to read */
+  const boxColor = (f) => (f.known ? "#4ade80" : "#fbbf24");
+  const labelColor = (f) => (f.known ? "#15803d" : "#b45309");
+  const edge = Math.max(1, line * 0.7);                      // thin dark outline around boxes and labels
   const ordered = [...faces.filter((f) => f.id !== act), ...faces.filter((f) => f.id === act)];   // highlighted face last, on top
   ordered.forEach((f) => {                                   // 1st pass: all the boxes
     g.globalAlpha = alphaOf(f);
     const x = f.box.x * c.width, y = f.box.y * c.height, w = f.box.w * c.width, h = f.box.h * c.height;
     const on = f.id === act;
-    if (on) { g.fillStyle = colorOf(f) + "33"; g.fillRect(x, y, w, h); }
-    g.lineWidth = on ? line * 2.5 : line; g.strokeStyle = colorOf(f); g.strokeRect(x, y, w, h);
+    const lw = on ? line * 2.5 : line;
+    if (on) { g.fillStyle = boxColor(f) + "33"; g.fillRect(x, y, w, h); }
+    g.lineWidth = lw + edge * 2; g.strokeStyle = "rgba(0, 0, 0, 0.75)"; g.strokeRect(x, y, w, h);   // dark outline underneath
+    g.lineWidth = lw; g.strokeStyle = boxColor(f); g.strokeRect(x, y, w, h);
   });
   ordered.forEach((f) => {                                   // 2nd pass: all the labels, so no box line crosses a name
     g.globalAlpha = alphaOf(f);
     const s = spots.get(f.id);
-    g.fillStyle = colorOf(f); g.fillRect(s.x, s.y, s.w, s.h);
-    g.font = fontCss(s.px); g.fillStyle = "#fff"; g.fillText(s.text, s.x + s.padX, s.y + s.h / 2);
+    g.fillStyle = "rgba(0, 0, 0, 0.8)"; g.fillRect(s.x - edge, s.y - edge, s.w + edge * 2, s.h + edge * 2);   // dark outline
+    g.fillStyle = labelColor(f); g.fillRect(s.x, s.y, s.w, s.h);
+    g.font = fontCss(s.px); g.fillStyle = "#ffffff"; g.fillText(s.text, s.x + s.padX, s.y + s.h / 2);
   });
   g.globalAlpha = 1;
 }

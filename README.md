@@ -77,7 +77,7 @@ The Run button stays grey until the models are ready and you have chosen a folde
 
 ## Use the page (3 steps)
 
-Everything fits on one screen: Run at the top, the photo on the left, the list of faces on the right,
+The page uses a dark theme (the only look) and everything fits on one screen: Run at the top, the photo on the left, the list of faces on the right,
 and the strictness slider at the bottom. The download buttons sit at the top, on the right.
 
 1. **Choose the folder of known people**: click the big box **1** (or drag the folder onto it).
