@@ -3,96 +3,147 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Who is in the photo?</title>
+  <title>Face Recognition</title>
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0d12">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main>
-    <header class="top">
-      <h1>Who is in the photo?</h1>
-      <p class="lead">Find your known people in a group photo. Everything stays on this computer.</p>
-      <p id="engine-status" class="pill" role="status">Starting up...</p>
+  <div class="app">
+
+    <!-- top bar: title, status, the three actions, and the two pop-up buttons -->
+    <header class="topbar">
+      <div class="brand">
+        <h1>Face Recognition</h1>
+        <!-- shown only while the models load, or when something is wrong -->
+        <p id="engine-status" class="pill" role="status">Starting up...</p>
+      </div>
+
+      <div class="actions">
+        <div class="row">
+          <button id="run" class="btn primary sm" type="button" disabled>Run</button>
+          <button id="cancel" class="btn secondary sm" type="button" hidden>Cancel</button>
+        </div>
+        <!-- file names, with a small link to pick again (the big drop zones do the first pick) -->
+        <div class="files">
+        <div id="chip-folder" class="file-chip" hidden>
+          <span id="folder-info" class="file-note" aria-live="polite"></span>
+          <button id="pick-folder" class="link" type="button">Change folder</button>
+        </div>
+        <div id="chip-group" class="file-chip" hidden>
+          <span id="group-info" class="file-note" aria-live="polite"></span>
+          <button id="pick-group" class="link" type="button">Change photo</button>
+        </div>
+        </div>
+      </div>
+
+      <div class="top-extra">
+        <button id="open-gallery" class="btn ghost sm" type="button" hidden>Known people <span id="gallery-count"></span></button>
+        <button id="open-notes" class="btn ghost sm" type="button" hidden>Folder notes <span id="notes-count"></span></button>
+        <div id="tools" class="tools" hidden>
+          <button id="dl-png" class="btn sm" type="button" title="Save the group photo with the boxes and names">Download PNG</button>
+          <button id="dl-csv" class="btn sm" type="button" title="Save the list of faces as a spreadsheet file">Download CSV</button>
+        </div>
+      </div>
+
+      <input id="folder-input" type="file" webkitdirectory multiple hidden>
+      <input id="group-input" type="file" accept="image/*" hidden>
     </header>
 
     <div id="error" class="alert" role="alert" hidden></div>
 
-    <section class="card" aria-labelledby="s1">
-      <div class="step-no" aria-hidden="true">1</div>
-      <div class="step-body">
-        <h2 id="s1">Choose the folder of known people</h2>
-        <p class="help">Pick a folder with one photo per person. The file name is the person's name,
-          for example <strong>Priya Sharma.jpg</strong>.</p>
-        <button id="pick-folder" class="btn" type="button">Choose folder</button>
-        <input id="folder-input" type="file" webkitdirectory multiple hidden>
-        <p id="folder-info" class="info" aria-live="polite"></p>
-      </div>
-    </section>
+    <!-- main area: photo on the left, list of faces on the right -->
+    <main class="workspace">
+      <section id="stage" class="stage-col" aria-label="Group photo">
 
-    <section class="card" aria-labelledby="s2">
-      <div class="step-no" aria-hidden="true">2</div>
-      <div class="step-body">
-        <h2 id="s2">Upload one group photo</h2>
-        <p class="help">A picture with several people in it (JPG, PNG, BMP or WEBP).</p>
-        <button id="pick-group" class="btn" type="button">Choose group photo</button>
-        <input id="group-input" type="file" accept="image/*" hidden>
-        <p id="group-info" class="info" aria-live="polite"></p>
-      </div>
-    </section>
-
-    <section class="card" aria-labelledby="s3">
-      <div class="step-no" aria-hidden="true">3</div>
-      <div class="step-body">
-        <h2 id="s3">Run</h2>
-        <p class="help">The first run reads every photo in the folder, which can take a while for a big folder.
-          Later runs with the same folder are instant.</p>
-        <div class="row">
-          <button id="run" class="btn primary" type="button" disabled>Run</button>
-          <button id="cancel" class="btn secondary" type="button" hidden>Cancel</button>
-        </div>
-        <div id="progress" class="progress" hidden>
-          <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-            <div id="bar-fill"></div>
+        <div id="empty" class="empty-state">
+          <div class="zones">
+            <button id="drop-folder" class="dropzone" type="button">
+              <span class="zone-num" aria-hidden="true">1</span>
+              <span class="zone-title">Folder of known people</span>
+              <span class="zone-text"><span class="idle">Drag a folder here, or click to choose</span><span class="over-text">Drop the folder now</span></span>
+              <span id="zone-folder" class="zone-status"></span>
+            </button>
+            <button id="drop-group" class="dropzone" type="button">
+              <span class="zone-num" aria-hidden="true">2</span>
+              <span class="zone-title">Group photo</span>
+              <span class="zone-text"><span class="idle">Drag a photo here, or click to choose</span><span class="over-text">Drop the photo now</span></span>
+              <span id="zone-group" class="zone-status"></span>
+            </button>
           </div>
-          <p id="progress-text" aria-live="polite"></p>
+          <p class="help-line">The folder has one photo per person, named after them (for example <strong>Priya Sharma.jpg</strong>). Then press <strong>Run</strong>.</p>
         </div>
-      </div>
-    </section>
 
-    <section class="card slider-card" aria-labelledby="s4">
-      <div class="step-body wide">
-        <h2 id="s4">Strictness (threshold)</h2>
-        <p class="help">A face gets a name only if it is closer than this number to a known person.
-          <strong>Lower</strong> = stricter: fewer names, fewer mistakes, more "Unknown".
-          <strong>Higher</strong> = more forgiving: more names, but strangers may get a wrong name.
-          Moving the slider changes the labels instantly.</p>
+        <div id="results" class="photo" hidden>
+          <canvas id="canvas" aria-label="Group photo with a box and a name on each face"></canvas>
+        </div>
+
+        <div id="progress" class="progress-overlay" hidden>
+          <div class="progress-card">
+            <div class="bar-row">
+              <div class="bar" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div id="bar-fill"></div>
+              </div>
+              <span id="progress-pct" class="pct">0%</span>
+            </div>
+            <p id="progress-text" aria-live="polite"></p>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel" aria-label="Results">
+        <p id="summary" class="summary" aria-live="polite"></p>
+        <div id="stats" class="stats" hidden>
+          <div class="stat total"><span class="stat-num" id="stat-total">0</span><span class="stat-label">Faces found</span></div>
+          <div class="stat known"><span class="stat-num" id="stat-known">0</span><span class="stat-label">Known</span></div>
+          <div class="stat unknown"><span class="stat-num" id="stat-unknown">0</span><span class="stat-label">Unknown</span></div>
+        </div>
+        <div id="chips" class="chips" role="group" aria-label="Show faces" hidden>
+          <button type="button" class="chip" data-filter="all" aria-pressed="true">All <span id="chip-all">0</span></button>
+          <button type="button" class="chip" data-filter="known" aria-pressed="false">Known <span id="chip-known">0</span></button>
+          <button type="button" class="chip" data-filter="unknown" aria-pressed="false">Unknown <span id="chip-unknown">0</span></button>
+        </div>
+        <p id="panel-empty" class="panel-empty">The faces will be listed here after you press Run.</p>
+        <ul id="rows" class="face-list" aria-label="Faces found"></ul>
+      </aside>
+    </main>
+
+    <!-- bottom bar: strictness slider and downloads -->
+    <footer class="bottombar">
+      <div class="slider-block">
         <div class="slider-row">
-          <label for="threshold" class="sr-only">Threshold</label>
+          <label for="threshold" class="slider-label">Strictness</label>
           <input id="threshold" type="range" min="0.10" max="1.00" step="0.01" value="0.62">
           <output id="threshold-value" for="threshold">0.62</output>
         </div>
+        <p class="slider-help">Lower = stricter (more &ldquo;Unknown&rdquo;). Higher = more forgiving (strangers may get a name). Changes the labels instantly.</p>
       </div>
-    </section>
+    </footer>
+  </div>
 
-    <section id="results" hidden aria-labelledby="rh">
-      <h2 id="rh">Result</h2>
-      <p id="summary" class="summary" aria-live="polite"></p>
-      <div class="stage"><canvas id="canvas" aria-label="Group photo with a box and a name on each face"></canvas></div>
-      <h3>Faces found</h3>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>#</th><th>Name</th><th>Distance</th><th>Status</th></tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-      <details id="notes" class="notes" hidden>
-        <summary id="notes-title"></summary>
-        <ul id="notes-list"></ul>
-      </details>
-    </section>
+  <!-- pop-up drawers (they take no space until opened) -->
+  <dialog id="gallery-dialog" class="drawer" aria-labelledby="gallery-title">
+    <div class="drawer-head">
+      <h2 id="gallery-title">Known people</h2>
+      <button class="btn ghost sm" type="button" data-close>Close</button>
+    </div>
+    <div class="drawer-body">
+      <ul id="gallery-grid" class="gallery-grid"></ul>
+      <button id="gallery-more" class="btn secondary sm" type="button" hidden></button>
+    </div>
+  </dialog>
 
-    <footer>Offline face recognition &middot; <span id="lib"></span> &middot; no internet needed</footer>
-  </main>
+  <dialog id="notes-dialog" class="drawer" aria-labelledby="notes-title">
+    <div class="drawer-head">
+      <h2 id="notes-title">Notes about the folder</h2>
+      <button class="btn ghost sm" type="button" data-close>Close</button>
+    </div>
+    <div class="drawer-body">
+      <ul id="notes-list" class="notes-list"></ul>
+    </div>
+  </dialog>
+
   <script src="app.js"></script>
 </body>
 </html>
