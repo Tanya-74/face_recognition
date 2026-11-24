@@ -5,12 +5,27 @@ All tests: Windows 11, CPU only, Python 3.11.9, one separate virtual environment
 (50 known people in `folder`, 50 new photos of them in `test_same`, 20 unknown people in `test_unknown`,
 3 group photos with 10 faces each).
 
+## Options and decision in short
+
+We looked at four open-source Python libraries that run on a laptop CPU without any online service.
+Links to all of them, to the papers behind the models and to the data are in section 4.
+
+| Option | What it is | What happened in our tests | Decision |
+|---|---|---|---|
+| [DeepFace](https://github.com/serengil/deepface) | A wrapper around several detectors and models (we used RetinaFace + Facenet512) | Installed with 2 problems; 2.0 GB environment; slowest per image | **Not picked** (install effort, size, speed). Its accuracy was not tested beyond the smoke test |
+| [face_recognition](https://github.com/ageitgey/face_recognition) (built on [dlib](https://github.com/davisking/dlib)) | The classic, very simple API | **Could not be installed** on this Windows PC: dlib needs the Visual C++ Build Tools | **Rejected for this project.** We did not retry (time box) |
+| [InsightFace](https://github.com/deepinsight/insightface) | A large toolkit; its `buffalo_l` pack uses SCRFD + ArcFace | Installed without problems; 509 MB environment, 601 MB of models | **Not picked.** Same model family as UniFace, so similar accuracy is expected, but the models are larger |
+| [UniFace](https://github.com/yakhyo/uniface) | A light library running SCRFD + ArcFace through ONNX Runtime | Fastest install (36 s), smallest environment, fastest per image | **Picked.** The only one we evaluated fully (section 2) |
+
+The choice is based on install effort, size and speed. It is **not** a proven choice on accuracy, because only UniFace
+had the full evaluation (see the limits in section 3).
+
 ## 1. Smoke test of all 4 libraries
 
 Each library got a short test: install, find faces and make embeddings on 3 images, time per image,
 and run with the network blocked (dead proxy) to check it works offline.
 
-| | DeepFace | face_recognition | InsightFace | UniFace |
+| | [DeepFace](https://github.com/serengil/deepface) | [face_recognition](https://github.com/ageitgey/face_recognition) | [InsightFace](https://github.com/deepinsight/insightface) | [UniFace](https://github.com/yakhyo/uniface) |
 |---|---|---|---|---|
 | Install on Python 3.11 | OK, 114 s | **Failed**, 38 s | OK, 50 s | OK, 36 s |
 | Install problems | 2 (see below) | dlib cannot be built: needs Visual C++ Build Tools | none | none |
@@ -127,3 +142,37 @@ Model loading takes about 2 s once per run.
 - Only UniFace was fully evaluated. DeepFace, InsightFace and face_recognition have only the smoke test above,
   so no accuracy comparison between libraries exists yet.
 - Times are from one Windows PC (CPU only, no GPU). They are meant as a rough comparison only.
+
+## 4. Links and sources
+
+Links were checked on 2026-11-24 (each one answered with HTTP 200).
+
+**The four libraries we compared**
+
+- DeepFace: <https://github.com/serengil/deepface>
+- face_recognition: <https://github.com/ageitgey/face_recognition>, and dlib, which it is built on: <https://github.com/davisking/dlib>
+- InsightFace: <https://github.com/deepinsight/insightface> (model zoo: <https://github.com/deepinsight/insightface/tree/master/model_zoo>)
+- UniFace (the one we use): <https://github.com/yakhyo/uniface>, also on PyPI: <https://pypi.org/project/uniface/>
+
+**Papers behind the models** (what the models do, in the authors' words)
+
+- ArcFace, the face embedding model we use (a face becomes 512 numbers, compared by cosine distance): <https://arxiv.org/abs/1801.07698>
+- SCRFD, the face detector we use: "Sample and Computation Redistribution for Efficient Face Detection": <https://arxiv.org/abs/2105.04714>
+- RetinaFace, the detector DeepFace used in our smoke test: <https://arxiv.org/abs/1905.00641>
+- FaceNet, the idea behind DeepFace's Facenet512 model: <https://arxiv.org/abs/1503.03832>
+
+**Running the models offline**
+
+- ONNX Runtime (runs the `.onnx` model files on the CPU, no internet needed): <https://onnxruntime.ai>
+
+**Data** (we were given none; all test data is public)
+
+- Labeled Faces in the Wild (LFW), the public photo collection we used: paper "Labeled Faces in the Wild: A Database for Studying Face Recognition in Unconstrained Environments": <https://www.cs.umass.edu/~elm/papers/lfw.pdf>
+- We obtained it through scikit-learn: <https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_lfw_people.html> (see `download_lfw.py`).
+  `experiments/prepare_lfw.py` builds the folder of 50 known people, the unknown people and the three group "photos" (collages of 10 faces) from it.
+  No private photos are used.
+
+**Tools used to build the app**
+
+- FastAPI (the small local web server): <https://fastapi.tiangolo.com>
+- Archify (the architecture diagram in [ARCHITECTURE.md](ARCHITECTURE.md)): <https://github.com/tt-a1i/archify>
