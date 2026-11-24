@@ -28,13 +28,40 @@ to install Archify yourself. Each box in the diagram points at its file in `app/
 
 | Part | File | What it does |
 |---|---|---|
-| Web page | `app/static/` | The three steps, the progress bar, the slider, the picture with boxes and the results list. Plain HTML, CSS and JavaScript, no outside libraries, fonts or links. |
+| Web page | `app/static/` | The three steps, the progress bar, the slider, the picture with boxes, summary cards, filters, the results list and the downloads. Plain HTML, CSS and JavaScript, no outside libraries, fonts or links. See "The web page" below. |
 | FastAPI server | `app/main.py` | Serves the page and a small JSON API. Listens on `127.0.0.1` only, so other computers cannot reach it. Loads the models in the background when it starts. |
 | Engine | `app/engine.py` | Everything that is not "web" and not "face library": checks and shrinks pictures, picks the largest face, handles bad files with plain-English messages, keeps the cache, finds the nearest person. |
 | Embedding cache | `Session` class in `app/engine.py` | The known people's embeddings, in memory, per browser visit. Lets you press Run again without reading the folder again. |
 | Face backend | `app/face_backend.py` | The only place that knows about UniFace. It offers two functions: `get_faces(image)` and `distance(a, b)`. The experiments use the same two functions. Another library can be swapped in by writing another file like it. |
 | Model files | `models/*.onnx` | The SCRFD detector (finds faces) and the ArcFace model (makes embeddings). Loaded from this folder only, on CPU. |
 | Download script | `scripts/download_models.py` | Fetches the two model files once. This is the only moment the internet is used. |
+
+## The web page (UI)
+
+The page is three plain files in `app/static/`: `index.html` (structure), `style.css` (look) and `app.js` (behaviour).
+It never talks to anything except this app's own API. Everything below happens **in the browser** and needs no server call.
+
+| What you see | How it works |
+|---|---|
+| **Drop zones** for the folder and the group photo | Dashed boxes that light up when you drag over them. A dropped folder is read with the browser's folder API; if the browser cannot do that, the dropped files are used. Dropping is ignored while Run is working. Choosing with the button goes through the same code. |
+| **Summary cards** (faces, known, unknown) | Counted from the answer the server already gave, using the current slider value. |
+| **Photo with boxes** | A `<canvas>`. Hovering a box highlights it and its row; clicking selects it. The boxes fade in one by one after Run. |
+| **Results list** | One row per face: a small crop cut from the group photo (drawn on a hidden canvas), the matching folder photo (read from the local file, shown through a `blob:` address, never uploaded), name, distance, status. For unknown faces it says "closest: Name". Rows can be reached with Tab and selected with Enter or Space. |
+| **Filter chips** All / Known / Unknown | Hide rows and boxes in the browser. The counts update with the slider. |
+| **Gallery of known people** | Thumbnails of the folder photos, shown right after the folder is chosen, so mistakes (wrong folder, wrong file) are visible before Run. Collapsible. A folder of more than 48 people shows the first 48 and a "Show all" button. |
+| **Progress bar with percentage** | Real percentage while the folder is read (photos done / photos total). While the server looks at the group photo the time is unknown, so the bar just moves and shows no number. |
+| **Downloads** | The annotated photo (PNG, all faces at the current slider value) and the results (CSV, UTF-8 with a BOM so Excel shows accents correctly; names that start with `=`, `+`, `-` or `@` get a leading `'` so a spreadsheet cannot treat them as a formula). Both files are made in the browser. |
+| **Look** | Light colour scheme, large buttons, visible dark-blue focus rings, a green tick on finished steps, a layout that fits a phone-width screen. |
+| **Animations** | Short and subtle. If the computer is set to "reduce motion" (`prefers-reduced-motion`), the animations and smooth scrolling are switched off. |
+
+What did **not** change: the server, the API and the models. The page still receives the nearest person and the distance for
+every face, and decides "Known / Unknown" itself (see the trade-off below).
+
+**UI trade-offs.** There is no framework, so the code is one long `app.js` that keeps its state in a single object; this
+keeps the page free of outside code and easy to read from top to bottom, but it will get harder to change if the page grows a lot.
+The matched folder photos and the gallery use the original files, so a folder of huge photos makes those thumbnails slow to
+appear (the gallery therefore builds only when opened and loads lazily). Everything above is tested with a headless
+Edge browser (synthetic drag events, real downloads), **not** by dropping a real folder from Windows Explorer or on other browsers.
 
 ## Trade-offs (what we chose, and what it costs)
 
@@ -90,7 +117,7 @@ works on about 640 px. Small faces in a large real group photo may be missed. We
   is 2 % in test A.
 - **The default threshold (0.62) is a guess from this easy data.** The flat zone in our test was 0.55 to 0.80 (no
   mistakes). Real photos shrink that zone, so the number must be re-checked on your own photos.
-- **What was tested on the app itself:** 23 automatic API checks (bad files, huge pictures, empty group photo, expired
+- **What was tested on the app itself:** 22 automatic API checks (bad files, huge pictures, empty group photo, expired
   session) and a headless-browser run of the page with 10 folder photos. A folder of thousands of photos, very large
   real group photos and other browsers were **not** tested; the 5000-photo limit is untested.
 - **Speed varies with the machine.** We measured 0.4 to 2.2 seconds per photo on the same PC at different times.

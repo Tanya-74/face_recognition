@@ -112,7 +112,7 @@ so check the slider on your own photos.
 3. Double-click `run_app.bat` again. The page opens at `http://127.0.0.1:8000` (that address is your own
    computer, so it works without internet) and the badge turns green: **"Ready - works offline"**.
 4. Choose a folder and a group photo, press Run. It should work exactly as before.
-5. Optional proof: an automatic test starts the server with all network access blocked and checks 23 things:
+5. Optional proof: an automatic test starts the server with all network access blocked and checks 22 things:
    `python tests\test_app.py` (2 to 4 minutes, prints PASS or FAIL for each).
 
 If something needed the internet, the badge would show an error instead of green. The page loads no fonts,
