@@ -36,6 +36,7 @@ const state = {
   image: null,              // loaded <img> of the processed group photo
   notes: [],                // messages about skipped / special folder photos
   abort: null,
+  busy: false,              // true while Run is working (drops are ignored)
 };
 
 /* ---------- small helpers ---------- */
@@ -139,9 +140,10 @@ async function pollStatus() {
 
 /* ---------- step 1: folder ---------- */
 el.pickFolder.addEventListener("click", () => el.folderInput.click());
-el.folderInput.addEventListener("change", () => {
+el.folderInput.addEventListener("change", () => setFolder(Array.from(el.folderInput.files)));
+
+function setFolder(all) {
   clearError();
-  const all = Array.from(el.folderInput.files);
   state.folderFiles = all.filter((f) => IMAGE_EXT.test(f.name));
   state.folderIgnored = all.length - state.folderFiles.length;
   indexPeople();
@@ -156,23 +158,87 @@ el.folderInput.addEventListener("change", () => {
     el.folderInfo.textContent = t;
   }
   updateRunButton();
-});
+}
 
 /* ---------- step 2: group photo ---------- */
 el.pickGroup.addEventListener("click", () => el.groupInput.click());
-el.groupInput.addEventListener("change", () => {
+el.groupInput.addEventListener("change", () => setGroup(el.groupInput.files[0] || null));
+
+function setGroup(f, extra = "") {
   clearError();
-  const f = el.groupInput.files[0] || null;
   state.groupFile = f;
   if (f && !f.type.startsWith("image/") && !IMAGE_EXT.test(f.name)) {
     state.groupFile = null;
     el.groupInfo.textContent = "";
     showError("That file is not a picture. Please choose a JPG, PNG, BMP or WEBP photo.");
   } else {
-    el.groupInfo.textContent = f ? `✓ ${f.name}` : "";
+    el.groupInfo.textContent = f ? `✓ ${f.name}${extra}` : "";
   }
   updateRunButton();
+}
+
+/* ---------- drag and drop (folder and group photo) ---------- */
+const MAX_DROPPED = 20000;                     // safety stop when walking a dropped folder
+
+function hasFiles(ev) { return ev.dataTransfer && Array.from(ev.dataTransfer.types || []).includes("Files"); }
+
+async function readEntry(entry, out) {
+  if (out.length >= MAX_DROPPED) return;
+  if (entry.isFile) {
+    try { out.push(await new Promise((res, rej) => entry.file(res, rej))); } catch (_) { /* unreadable file: skip */ }
+  } else if (entry.isDirectory) {
+    const reader = entry.createReader();
+    for (;;) {                                  // readEntries returns the folder in chunks
+      const chunk = await new Promise((res, rej) => reader.readEntries(res, rej)).catch(() => []);
+      if (!chunk.length) break;
+      for (const e of chunk) await readEntry(e, out);
+    }
+  }
+}
+/* every file in what was dropped, including files inside dropped folders */
+async function filesFromDrop(dt) {
+  const entries = Array.from(dt.items || [])
+    .map((i) => (i.kind === "file" && i.webkitGetAsEntry ? i.webkitGetAsEntry() : null));   // must be read before any await
+  if (!entries.length || entries.some((e) => !e)) return Array.from(dt.files);              // browser cannot list folders
+  const out = [];
+  for (const e of entries) await readEntry(e, out);
+  return out;
+}
+
+function wireDrop(zone, onDrop) {
+  let depth = 0;
+  zone.addEventListener("dragenter", (ev) => {
+    if (!hasFiles(ev) || state.busy) return;
+    ev.preventDefault(); depth++; zone.classList.add("over");
+  });
+  zone.addEventListener("dragover", (ev) => {
+    if (!hasFiles(ev)) return;
+    ev.preventDefault();
+    ev.dataTransfer.dropEffect = state.busy ? "none" : "copy";
+  });
+  zone.addEventListener("dragleave", () => {
+    depth = Math.max(0, depth - 1);
+    if (!depth) zone.classList.remove("over");
+  });
+  zone.addEventListener("drop", async (ev) => {
+    ev.preventDefault();
+    depth = 0; zone.classList.remove("over");
+    if (state.busy || !hasFiles(ev)) return;
+    onDrop(ev.dataTransfer);
+  });
+}
+wireDrop($("drop-folder"), async (dt) => {
+  el.folderInfo.textContent = "Reading the dropped folder...";
+  setFolder(await filesFromDrop(dt));
 });
+wireDrop($("drop-group"), (dt) => {
+  const files = Array.from(dt.files);
+  const pics = files.filter((f) => f.type.startsWith("image/") || IMAGE_EXT.test(f.name));
+  if (pics.length) setGroup(pics[0], pics.length > 1 ? ` (only the first of ${pics.length} photos is used)` : "");
+  else setGroup(files[0] || null);              // shows the "not a picture" message
+});
+/* a file dropped outside a drop zone must not make the browser leave the page */
+["dragover", "drop"].forEach((t) => window.addEventListener(t, (ev) => { if (hasFiles(ev)) ev.preventDefault(); }));
 
 /* ---------- step 3: run ---------- */
 el.cancel.addEventListener("click", () => { if (state.abort) state.abort.abort(); });
@@ -180,6 +246,7 @@ el.cancel.addEventListener("click", () => { if (state.abort) state.abort.abort()
 el.run.addEventListener("click", async () => {
   clearError();
   state.abort = new AbortController();
+  state.busy = true;
   el.run.disabled = true;
   el.cancel.hidden = false;
   el.pickFolder.disabled = el.pickGroup.disabled = true;
@@ -196,6 +263,7 @@ el.run.addEventListener("click", async () => {
       showError(e.message);
     }
   } finally {
+    state.busy = false;
     el.cancel.hidden = true;
     el.pickFolder.disabled = el.pickGroup.disabled = false;
     updateRunButton();

@@ -66,6 +66,17 @@ h3 { font-size: 1.1rem; margin: 28px 0 10px; }
 }
 .row { display: flex; gap: 12px; flex-wrap: wrap; }
 
+.dropzone {
+  border: 2px dashed #b7c2d4; border-radius: var(--radius); background: #fafbfd;
+  padding: 20px 16px; text-align: center; transition: border-color .15s, background-color .15s;
+}
+.dropzone .drop-text { margin: 0 0 12px; color: var(--muted); }
+.dropzone .over-text { display: none; }
+.dropzone.over { border-color: var(--primary); border-style: solid; background: #eaf1fe; }
+.dropzone.over .idle { display: none; }
+.dropzone.over .over-text { display: inline; color: var(--primary-dark); font-weight: 700; font-size: 1.1rem; }
+.dropzone.over .btn { pointer-events: none; }
+
 .progress { margin-top: 16px; }
 .bar { height: 16px; background: #e5eaf2; border-radius: 999px; overflow: hidden; }
 #bar-fill { height: 100%; width: 0; background: var(--primary); transition: width .2s; }
