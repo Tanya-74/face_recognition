@@ -315,6 +315,7 @@ el.run.addEventListener("click", async () => {
   clearError();
   state.abort = new AbortController();
   state.busy = true;
+  el.tools.hidden = true;                    // no downloads while working (Cancel needs the room)
   el.run.disabled = true;
   el.cancel.hidden = false;
   el.pickFolder.disabled = el.pickGroup.disabled = true;
@@ -332,6 +333,7 @@ el.run.addEventListener("click", async () => {
     }
   } finally {
     state.busy = false;
+    el.tools.hidden = !state.faces.length;     // downloads come back if there is a result to download
     el.cancel.hidden = true;
     el.pickFolder.disabled = el.pickGroup.disabled = false;
     updateRunButton();

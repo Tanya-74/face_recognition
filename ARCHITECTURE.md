@@ -45,20 +45,20 @@ It never talks to anything except this app's own API. Everything below happens *
 
 ```
 +----------------------------------------------------------------------------------------------+
-| Title, status | [Choose folder] [Choose group photo] [Run] [Cancel] |  [Known people] [Folder notes] |  top bar
+| Title, status | [Choose folder] [Choose group photo] [Run] | [Known people] [Folder notes] [PNG] [CSV] |  top bar
 +---------------------------------------------+------------------------------------------------+
 |                                             |  11 faces | 7 known | 4 unknown                |
 |  group photo, scaled to fit                 |  [ All ] [ Known ] [ Unknown ]                 |
 |  (two drop zones before the first run;      |  card: crop, name, distance, badge, photo      |  main area
 |   progress bar while running)               |  card ...   (this list scrolls by itself)      |  about 65% / 35%
 +---------------------------------------------+------------------------------------------------+
-| Strictness [=====o=====] 0.62  one-line help                    [Download PNG] [Download CSV] |  bottom bar
+| Strictness [=====o=====] 0.62   one-line help                                                 |  bottom bar
 +----------------------------------------------------------------------------------------------+
 ```
 
 | What you see | How it works |
 |---|---|
-| **Top bar** | The three actions as compact buttons, with the chosen folder and photo names in small text beneath them (cut with "..." when long; the full text is the tooltip). Cancel appears only while running. "Known people" and "Folder notes" buttons appear when there is something to show. |
+| **Top bar** | The three actions as compact buttons, with the chosen folder and photo names in small text beneath them (cut with "..." when long; the full text is the tooltip). Cancel appears only while running. The free space on the right holds the "Known people" and "Folder notes" buttons (they appear when there is something to show) and the two download buttons (they appear when there is a result, and are hidden while a run is working so Cancel has room). The small text next to the green status pill names the face library; "offline" is said only once, in the pill. |
 | **Empty state with two drop zones** | Before the first result the left area shows two big dashed zones (folder, group photo) and one line of help. They light up while you drag over them, turn green when filled, and can also be clicked. Dropping is ignored while Run is working. |
 | **Drop after a result** | Once a result is on screen the zones are gone; the whole photo area accepts drops instead: one picture means a new group photo, a folder (or several files) means a new folder. A dropped folder is read with the browser's folder API; if the browser cannot do that, the dropped files are used. |
 | **Photo with boxes** | A `<canvas>` that a small script sizes to fit its area exactly (aspect ratio kept, redone whenever the window changes size). Hovering a box highlights it and its card; clicking selects it. The boxes fade in one by one after Run. |
@@ -67,7 +67,8 @@ It never talks to anything except this app's own API. Everything below happens *
 | **Face cards** | One card per face: a small crop cut from the group photo (on a hidden canvas), the face number, the name, the distance and a Known / Unknown badge. Known faces also show the matching folder photo, read from the local file and shown through a `blob:` address (never uploaded). Unknown faces say "closest: Name". Cards can be reached with Tab and selected with Enter or Space. |
 | **Drawers** | "Known people" (thumbnails of the folder photos, so a wrong folder or file is visible before Run) and "Folder notes" are native `<dialog>` drawers that slide in from the right. They take no space until opened, close with Escape, the Close button or a click outside, and give focus back to the button. A folder of more than 48 people shows the first 48 and a "Show all" button. |
 | **Progress** | A bar with a percentage, shown over the photo area. The percentage is real while the folder is read (photos done / total). While the server looks at the group photo the time is unknown, so the bar just moves and shows no number. |
-| **Bottom bar** | The strictness slider with its value and a one-line explanation, and the two downloads: the annotated photo (PNG, all faces at the current slider value) and the results (CSV, UTF-8 with a BOM so Excel shows accents correctly; names that start with `=`, `+`, `-` or `@` get a leading `'` so a spreadsheet cannot treat them as a formula). Both files are made in the browser. |
+| **Downloads** (top bar) | The annotated photo ("Download PNG", all faces at the current slider value) and the results ("Download CSV", UTF-8 with a BOM so Excel shows accents correctly; names that start with `=`, `+`, `-` or `@` get a leading `'` so a spreadsheet cannot treat them as a formula). Both files are made in the browser. |
+| **Bottom bar** | Only the strictness slider with its value and a one-line explanation. |
 | **Phones and very short windows** | Under 900 px wide the parts stack and the page scrolls normally. In a window shorter than 520 px the page may also scroll, rather than squashing everything. |
 | **Animations** | Short and subtle. If the computer is set to "reduce motion" (`prefers-reduced-motion`), animations and smooth scrolling are switched off. |
 

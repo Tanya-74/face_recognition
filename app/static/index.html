@@ -16,7 +16,7 @@
         <h1>Who is in the photo?</h1>
         <div class="brand-row">
           <p id="engine-status" class="pill" role="status">Starting up...</p>
-          <span class="lib-note">works offline &middot; <span id="lib"></span></span>
+          <span class="lib-note" id="lib"></span>
         </div>
       </div>
 
@@ -40,6 +40,10 @@
       <div class="top-extra">
         <button id="open-gallery" class="btn ghost sm" type="button" hidden>Known people <span id="gallery-count"></span></button>
         <button id="open-notes" class="btn ghost sm" type="button" hidden>Folder notes <span id="notes-count"></span></button>
+        <div id="tools" class="tools" hidden>
+          <button id="dl-png" class="btn sm" type="button" title="Save the group photo with the boxes and names">Download PNG</button>
+          <button id="dl-csv" class="btn sm" type="button" title="Save the list of faces as a spreadsheet file">Download CSV</button>
+        </div>
       </div>
 
       <input id="folder-input" type="file" webkitdirectory multiple hidden>
@@ -113,10 +117,6 @@
           <output id="threshold-value" for="threshold">0.62</output>
         </div>
         <p class="slider-help">Lower = stricter (more &ldquo;Unknown&rdquo;). Higher = more forgiving (strangers may get a name). Changes the labels instantly.</p>
-      </div>
-      <div id="tools" class="tools" hidden>
-        <button id="dl-png" class="btn sm" type="button">Download photo (PNG)</button>
-        <button id="dl-csv" class="btn sm" type="button">Download results (CSV)</button>
       </div>
     </footer>
   </div>

@@ -76,7 +76,7 @@ When the badge at the top turns green and says **"Ready - works offline"**, you 
 ## Use the page (3 steps)
 
 Everything fits on one screen: buttons at the top, the photo on the left, the list of faces on the right,
-the strictness slider and the download buttons at the bottom.
+and the strictness slider at the bottom. The download buttons sit at the top, on the right.
 
 1. **Choose the folder of known people** (button at the top, or drag the folder onto the left area).
    One photo per person, named after them, for example `Priya Sharma.jpg`, `Tom Lee.png`.
@@ -86,7 +86,7 @@ the strictness slider and the download buttons at the bottom.
    on a normal CPU). The photo then appears with a box and a name on every face. On the right you see how many
    faces were found, how many are known and unknown, and one card per face. Point at a face (or a card) to
    highlight the other one, click to select, and use **All / Known / Unknown** to filter.
-   **Download photo (PNG)** and **Download results (CSV)** are at the bottom.
+   **Download PNG** (the photo with boxes and names) and **Download CSV** (the list, opens in Excel) are at the top right.
 
 **Strictness slider** (bottom left, default 0.62): lower = stricter (more "Unknown", fewer wrong names); higher = more forgiving.
 It changes the labels at once without reading any photo again. Pressing Run again with the same folder skips the
