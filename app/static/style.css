@@ -77,6 +77,14 @@ h3 { font-size: 1.1rem; margin: 28px 0 10px; }
 .dropzone.over .over-text { display: inline; color: var(--primary-dark); font-weight: 700; font-size: 1.1rem; }
 .dropzone.over .btn { pointer-events: none; }
 
+.gallery { margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: #fafbfd; }
+.gallery summary { cursor: pointer; font-weight: 600; min-height: 32px; display: flex; align-items: center; }
+.gallery-grid { list-style: none; margin: 12px 0 4px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 12px; max-height: 340px; overflow: auto; }
+.gallery-grid li { text-align: center; min-width: 0; }
+.gallery-grid .thumb { width: 72px; height: 72px; margin: 0 auto 4px; }
+.gallery-grid span { display: block; font-size: .8rem; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn.small { min-height: 44px; padding: 0 18px; font-size: .95rem; margin-top: 10px; }
+
 .progress { margin-top: 16px; }
 .bar { height: 16px; background: #e5eaf2; border-radius: 999px; overflow: hidden; }
 #bar-fill { height: 100%; width: 0; background: var(--primary); transition: width .2s; }

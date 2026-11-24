@@ -15,6 +15,7 @@ const el = {
   results: $("results"), summary: $("summary"), canvas: $("canvas"), rows: $("rows"),
   stats: $("stats"), statTotal: $("stat-total"), statKnown: $("stat-known"), statUnknown: $("stat-unknown"),
   chips: $("chips"), chipAll: $("chip-all"), chipKnown: $("chip-known"), chipUnknown: $("chip-unknown"),
+  gallery: $("gallery"), galleryTitle: $("gallery-title"), galleryGrid: $("gallery-grid"), galleryMore: $("gallery-more"),
   notes: $("notes"), notesTitle: $("notes-title"), notesList: $("notes-list"),
 };
 
@@ -157,8 +158,44 @@ function setFolder(all) {
     if (state.folderIgnored) t += ` (${plural(state.folderIgnored, "other file", "other files")} will be ignored)`;
     el.folderInfo.textContent = t;
   }
+  renderGallery();
   updateRunButton();
 }
+
+/* ---------- gallery of the known people (collapsible, built from the local files) ---------- */
+const GALLERY_FIRST = 48;                      // a huge folder is shown in two steps to keep the page light
+let galleryShowAll = false;
+
+function renderGallery() {
+  const names = Array.from(state.people.keys());
+  galleryShowAll = false;
+  el.galleryGrid.replaceChildren();
+  el.gallery.hidden = !names.length;
+  if (!names.length) return;
+  el.galleryTitle.textContent = `Known people in this folder (${names.length})`;
+  el.gallery.open = names.length <= 12;        // small folder: open; big folder: collapsed
+  buildGallery();
+}
+function buildGallery() {
+  if (!el.gallery.open) return;                // built when the user opens it
+  const names = Array.from(state.people.keys());
+  const shown = galleryShowAll ? names : names.slice(0, GALLERY_FIRST);
+  if (el.galleryGrid.childElementCount === shown.length) return;
+  el.galleryGrid.replaceChildren(...shown.map((n) => {
+    const li = document.createElement("li");
+    const img = document.createElement("img");
+    img.className = "thumb"; img.alt = `Photo of ${n}`; img.loading = "lazy"; img.decoding = "async";
+    img.src = photoUrl(n);
+    img.addEventListener("error", () => { img.removeAttribute("src"); img.alt = "(cannot show this photo)"; });
+    const cap = document.createElement("span"); cap.textContent = n; cap.title = n;
+    li.append(img, cap);
+    return li;
+  }));
+  el.galleryMore.hidden = galleryShowAll || names.length <= GALLERY_FIRST;
+  el.galleryMore.textContent = `Show all ${names.length} people`;
+}
+el.gallery.addEventListener("toggle", buildGallery);
+el.galleryMore.addEventListener("click", () => { galleryShowAll = true; buildGallery(); });
 
 /* ---------- step 2: group photo ---------- */
 el.pickGroup.addEventListener("click", () => el.groupInput.click());
