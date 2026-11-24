@@ -25,6 +25,9 @@ const state = {
   sessionId: null,
   loadedKey: null,          // identifies the folder that is already processed on the server
   analysis: null,           // last answer for the group photo
+  faces: [],                // faces with their label at the current threshold
+  hoverId: null,            // face under the mouse / keyboard focus
+  selectedId: null,         // face the user clicked
   image: null,              // loaded <img> of the processed group photo
   notes: [],                // messages about skipped / special folder photos
   abort: null,
@@ -207,6 +210,7 @@ async function analyseGroup() {
     throw e;
   }
   state.analysis = data;
+  state.hoverId = state.selectedId = null;
   state.image = await loadImage(data.image);
   el.results.hidden = false;
   render();
@@ -246,8 +250,8 @@ el.threshold.addEventListener("input", () => {
 function render() {
   const t = Number(el.threshold.value);
   const a = state.analysis;
-  const img = state.image;
-  const faces = a.faces.map((f) => ({ ...f, ...labelFor(f, t) }));
+  state.faces = a.faces.map((f) => ({ ...f, ...labelFor(f, t) }));
+  const faces = state.faces;
 
   /* summary */
   const knownCount = faces.filter((f) => f.known).length;
@@ -262,19 +266,30 @@ function render() {
   el.statKnown.textContent = knownCount;
   el.statUnknown.textContent = faces.length - knownCount;
 
-  /* picture with boxes */
+  drawCanvas();
+  buildRows();
+}
+
+/* ---------- picture with boxes ---------- */
+function activeId() { return state.hoverId ?? state.selectedId; }
+
+function drawCanvas() {
+  const img = state.image;
   const c = el.canvas;
-  c.width = img.naturalWidth; c.height = img.naturalHeight;
+  if (c.width !== img.naturalWidth) { c.width = img.naturalWidth; c.height = img.naturalHeight; }
   const g = c.getContext("2d");
   g.drawImage(img, 0, 0);
   const fontPx = Math.max(15, Math.round(c.width / 55));
   const line = Math.max(2, Math.round(c.width / 450));
   g.font = `600 ${fontPx}px "Segoe UI", system-ui, Arial, sans-serif`;
   g.textBaseline = "middle";
-  faces.forEach((f) => {
+  const act = activeId();
+  state.faces.forEach((f) => {
     const x = f.box.x * c.width, y = f.box.y * c.height, w = f.box.w * c.width, h = f.box.h * c.height;
     const color = f.known ? "#17803d" : "#b45309";
-    g.lineWidth = line; g.strokeStyle = color; g.strokeRect(x, y, w, h);
+    const on = f.id === act;
+    if (on) { g.fillStyle = color + "33"; g.fillRect(x, y, w, h); }
+    g.lineWidth = on ? line * 2.5 : line; g.strokeStyle = color; g.strokeRect(x, y, w, h);
     const text = `${f.id}. ${f.name}`;
     const padX = fontPx * 0.45, boxH = fontPx * 1.5;
     const tw = g.measureText(text).width + padX * 2;
@@ -283,10 +298,64 @@ function render() {
     g.fillStyle = color; g.fillRect(lx, ly, tw, boxH);
     g.fillStyle = "#fff"; g.fillText(text, lx + padX, ly + boxH / 2);
   });
+}
 
-  /* results list */
-  const rows = faces.map((f) => {
+/* the face under the mouse (smallest box wins when boxes overlap) */
+function faceAt(ev) {
+  const c = el.canvas, r = c.getBoundingClientRect();
+  const px = (ev.clientX - r.left) / r.width, py = (ev.clientY - r.top) / r.height;
+  let best = null;
+  (state.faces || []).forEach((f) => {
+    const b = f.box;
+    if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) {
+      if (!best || b.w * b.h < best.box.w * best.box.h) best = f;
+    }
+  });
+  return best;
+}
+
+function setHover(id) {
+  if (state.hoverId === id) return;
+  state.hoverId = id;
+  refreshHighlight();
+}
+function selectFace(id, scrollRow = false) {
+  state.selectedId = state.selectedId === id ? null : id;
+  refreshHighlight();
+  if (scrollRow && state.selectedId !== null) {
+    const tr = el.rows.querySelector(`tr[data-id="${id}"]`);
+    if (tr) tr.scrollIntoView({ block: "nearest", behavior: reduceMotion() ? "auto" : "smooth" });
+  }
+}
+function refreshHighlight() {
+  el.rows.querySelectorAll("tr").forEach((tr) => {
+    const id = Number(tr.dataset.id);
+    tr.classList.toggle("hover", id === state.hoverId);
+    tr.classList.toggle("selected", id === state.selectedId);
+    tr.setAttribute("aria-selected", id === state.selectedId ? "true" : "false");
+  });
+  drawCanvas();
+}
+function reduceMotion() { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+
+el.canvas.addEventListener("mousemove", (ev) => {
+  const f = faceAt(ev);
+  el.canvas.style.cursor = f ? "pointer" : "default";
+  setHover(f ? f.id : null);
+});
+el.canvas.addEventListener("mouseleave", () => setHover(null));
+el.canvas.addEventListener("click", (ev) => {
+  const f = faceAt(ev);
+  if (f) selectFace(f.id, true);
+});
+
+/* ---------- results list ---------- */
+function buildRows() {
+  const rows = state.faces.map((f) => {
     const tr = document.createElement("tr");
+    tr.dataset.id = f.id;
+    tr.tabIndex = 0;
+    tr.title = "Click to select this face";
     const cells = [String(f.id), null, f.distance.toFixed(3), null];
     cells.forEach((txt, i) => {
       const td = document.createElement("td");
@@ -309,9 +378,18 @@ function render() {
       }
       tr.appendChild(td);
     });
+    tr.addEventListener("mouseenter", () => setHover(f.id));
+    tr.addEventListener("mouseleave", () => setHover(null));
+    tr.addEventListener("focus", () => setHover(f.id));
+    tr.addEventListener("blur", () => setHover(null));
+    tr.addEventListener("click", () => selectFace(f.id));
+    tr.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectFace(f.id); }
+    });
     return tr;
   });
   el.rows.replaceChildren(...rows);
+  refreshHighlight();
 }
 
 pollStatus();

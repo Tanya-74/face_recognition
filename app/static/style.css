@@ -113,6 +113,11 @@ table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); }
 th { background: #f0f3f8; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 tr:last-child td { border-bottom: 0; }
+tbody tr { cursor: pointer; }
+tbody tr.hover td { background: #eef3fd; }
+tbody tr.selected td { background: #dde8fb; }
+tbody tr.selected td:first-child { box-shadow: inset 5px 0 0 var(--primary); }
+tbody tr:focus-visible { outline: 3px solid #f2a900; outline-offset: -3px; }
 td .hint { display: block; font-size: .85rem; color: var(--muted); }
 .badge {
   display: inline-block; padding: 3px 12px; border-radius: 999px; font-weight: 700; font-size: .9rem; color: #fff;
