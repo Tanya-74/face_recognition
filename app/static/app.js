@@ -10,7 +10,7 @@ const el = {
   pickFolder: $("pick-folder"), folderInput: $("folder-input"), folderInfo: $("folder-info"),
   pickGroup: $("pick-group"), groupInput: $("group-input"), groupInfo: $("group-info"),
   run: $("run"), cancel: $("cancel"),
-  progress: $("progress"), barFill: $("bar-fill"), progressText: $("progress-text"),
+  progress: $("progress"), progressPct: $("progress-pct"), barFill: $("bar-fill"), progressText: $("progress-text"),
   threshold: $("threshold"), thresholdValue: $("threshold-value"),
   results: $("results"), summary: $("summary"), canvas: $("canvas"), rows: $("rows"),
   stats: $("stats"), statTotal: $("stat-total"), statKnown: $("stat-known"), statUnknown: $("stat-unknown"),
@@ -37,6 +37,8 @@ const state = {
   image: null,              // loaded <img> of the processed group photo
   notes: [],                // messages about skipped / special folder photos
   abort: null,
+  reveal: null,             // box fade-in animation state
+  animateRows: false,
   busy: false,              // true while Run is working (drops are ignored)
 };
 
@@ -45,9 +47,11 @@ function showError(msg, warn = false) {
   el.error.textContent = msg;
   el.error.classList.toggle("warn", warn);
   el.error.hidden = false;
-  el.error.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  el.error.scrollIntoView({ behavior: scrollMode(), block: "nearest" });
 }
 function clearError() { el.error.hidden = true; el.error.textContent = ""; }
+/* restart a CSS animation class */
+function replay(node, cls) { node.classList.remove(cls); void node.offsetWidth; node.classList.add(cls); }
 function plural(n, one, many) { return `${n} ${n === 1 ? one : many}`; }
 /* same rule as the server: 'dir/Priya Sharma.jpg' -> 'Priya Sharma' */
 function personName(filename) {
@@ -95,6 +99,7 @@ function setProgress(fraction, text, busy = false) {
   bar.classList.toggle("busy", busy);
   const pct = Math.round(fraction * 100);
   el.barFill.style.width = pct + "%";
+  el.progressPct.textContent = busy ? "" : pct + "%";           // no percentage when we cannot know it
   bar.setAttribute("aria-valuenow", String(pct));
   el.progressText.textContent = text;
 }
@@ -361,9 +366,12 @@ async function analyseGroup() {
   state.image = await loadImage(data.image);
   makeCrops();
   el.results.hidden = false;
+  state.animateRows = true;
+  startReveal();                               // before the first draw, so the finished photo never flashes
   render();
+  replay(el.results, "enter");
   showNotes();
-  el.results.scrollIntoView({ behavior: "smooth", block: "start" });
+  el.results.scrollIntoView({ behavior: scrollMode(), block: "start" });
 }
 
 function loadImage(src) {
@@ -431,6 +439,7 @@ el.chips.addEventListener("click", (ev) => {
   state.filter = b.dataset.filter;
   el.chips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c === b)));
   state.hoverId = null;
+  state.reveal = null;
   drawCanvas();
   buildRows();
 });
@@ -449,7 +458,10 @@ function drawCanvas() {
   g.font = `600 ${fontPx}px "Segoe UI", system-ui, Arial, sans-serif`;
   g.textBaseline = "middle";
   const act = activeId();
-  visibleFaces().forEach((f) => {
+  const rv = state.reveal;                     // {start, n, dur} while the boxes fade in
+  const now = performance.now();
+  visibleFaces().forEach((f, k) => {
+    g.globalAlpha = rv ? Math.min(1, Math.max(0, ((now - rv.start) - (k / Math.max(1, rv.n)) * rv.dur) / 300)) : 1;
     const x = f.box.x * c.width, y = f.box.y * c.height, w = f.box.w * c.width, h = f.box.h * c.height;
     const color = f.known ? "#17803d" : "#b45309";
     const on = f.id === act;
@@ -463,6 +475,23 @@ function drawCanvas() {
     g.fillStyle = color; g.fillRect(lx, ly, tw, boxH);
     g.fillStyle = "#fff"; g.fillText(text, lx + padX, ly + boxH / 2);
   });
+  g.globalAlpha = 1;
+}
+
+/* boxes appear one after another; skipped when the computer asks for less motion */
+function startReveal() {
+  state.reveal = null;
+  const n = state.analysis.faces.length;
+  if (reduceMotion() || !n) return;
+  const dur = Math.min(900, 150 + n * 80);
+  state.reveal = { start: performance.now(), n, dur };
+  const tick = () => {
+    if (!state.reveal) return;
+    drawCanvas();
+    if (performance.now() - state.reveal.start >= dur + 300) { state.reveal = null; drawCanvas(); return; }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
 /* the face under the mouse (smallest box wins when boxes overlap) */
@@ -489,7 +518,7 @@ function selectFace(id, scrollRow = false) {
   refreshHighlight();
   if (scrollRow && state.selectedId !== null) {
     const tr = el.rows.querySelector(`tr[data-id="${id}"]`);
-    if (tr) tr.scrollIntoView({ block: "nearest", behavior: reduceMotion() ? "auto" : "smooth" });
+    if (tr) tr.scrollIntoView({ block: "nearest", behavior: scrollMode() });
   }
 }
 function refreshHighlight() {
@@ -501,6 +530,7 @@ function refreshHighlight() {
   });
   drawCanvas();
 }
+function scrollMode() { return reduceMotion() ? "auto" : "smooth"; }
 function reduceMotion() { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
 
 el.canvas.addEventListener("mousemove", (ev) => {
@@ -517,9 +547,11 @@ el.canvas.addEventListener("click", (ev) => {
 /* ---------- results list ---------- */
 function buildRows() {
   const shown = visibleFaces();
+  let rowsIndex = 0;
   const rows = shown.map((f) => {
     const tr = document.createElement("tr");
     tr.dataset.id = f.id;
+    if (state.animateRows) { tr.classList.add("enter"); tr.style.setProperty("--i", Math.min(rowsIndex++, 12)); }
     tr.tabIndex = 0;
     tr.title = "Click to select this face";
     const cell = (cls) => { const td = document.createElement("td"); if (cls) td.className = cls; tr.appendChild(td); return td; };
@@ -572,6 +604,7 @@ function buildRows() {
     tr.appendChild(td); rows.push(tr);
   }
   el.rows.replaceChildren(...rows);
+  state.animateRows = false;                   // only the first build fades in, not slider moves
   refreshHighlight();
 }
 
