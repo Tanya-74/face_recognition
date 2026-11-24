@@ -14,6 +14,7 @@ const el = {
   threshold: $("threshold"), thresholdValue: $("threshold-value"),
   results: $("results"), summary: $("summary"), canvas: $("canvas"), rows: $("rows"),
   stats: $("stats"), statTotal: $("stat-total"), statKnown: $("stat-known"), statUnknown: $("stat-unknown"),
+  chips: $("chips"), chipAll: $("chip-all"), chipKnown: $("chip-known"), chipUnknown: $("chip-unknown"),
   notes: $("notes"), notesTitle: $("notes-title"), notesList: $("notes-list"),
 };
 
@@ -29,6 +30,7 @@ const state = {
   loadedKey: null,          // identifies the folder that is already processed on the server
   analysis: null,           // last answer for the group photo
   faces: [],                // faces with their label at the current threshold
+  filter: "all",            // which faces to show: all | known | unknown
   hoverId: null,            // face under the mouse / keyboard focus
   selectedId: null,         // face the user clicked
   image: null,              // loaded <img> of the processed group photo
@@ -248,6 +250,8 @@ async function analyseGroup() {
     throw e;
   }
   state.analysis = data;
+  state.filter = "all";
+  el.chips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.filter === "all")));
   state.hoverId = state.selectedId = null;
   state.image = await loadImage(data.image);
   makeCrops();
@@ -305,9 +309,26 @@ function render() {
   el.statKnown.textContent = knownCount;
   el.statUnknown.textContent = faces.length - knownCount;
 
+  el.chipAll.textContent = faces.length;
+  el.chipKnown.textContent = knownCount;
+  el.chipUnknown.textContent = faces.length - knownCount;
   drawCanvas();
   buildRows();
 }
+
+/* ---------- filter chips: All / Known / Unknown ---------- */
+function visibleFaces() {
+  return state.faces.filter((f) => state.filter === "all" || (state.filter === "known") === f.known);
+}
+el.chips.addEventListener("click", (ev) => {
+  const b = ev.target.closest(".chip");
+  if (!b || !state.analysis) return;
+  state.filter = b.dataset.filter;
+  el.chips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c === b)));
+  state.hoverId = null;
+  drawCanvas();
+  buildRows();
+});
 
 /* ---------- picture with boxes ---------- */
 function activeId() { return state.hoverId ?? state.selectedId; }
@@ -323,7 +344,7 @@ function drawCanvas() {
   g.font = `600 ${fontPx}px "Segoe UI", system-ui, Arial, sans-serif`;
   g.textBaseline = "middle";
   const act = activeId();
-  state.faces.forEach((f) => {
+  visibleFaces().forEach((f) => {
     const x = f.box.x * c.width, y = f.box.y * c.height, w = f.box.w * c.width, h = f.box.h * c.height;
     const color = f.known ? "#17803d" : "#b45309";
     const on = f.id === act;
@@ -344,7 +365,7 @@ function faceAt(ev) {
   const c = el.canvas, r = c.getBoundingClientRect();
   const px = (ev.clientX - r.left) / r.width, py = (ev.clientY - r.top) / r.height;
   let best = null;
-  (state.faces || []).forEach((f) => {
+  visibleFaces().forEach((f) => {
     const b = f.box;
     if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) {
       if (!best || b.w * b.h < best.box.w * best.box.h) best = f;
@@ -390,7 +411,8 @@ el.canvas.addEventListener("click", (ev) => {
 
 /* ---------- results list ---------- */
 function buildRows() {
-  const rows = state.faces.map((f) => {
+  const shown = visibleFaces();
+  const rows = shown.map((f) => {
     const tr = document.createElement("tr");
     tr.dataset.id = f.id;
     tr.tabIndex = 0;
@@ -437,6 +459,13 @@ function buildRows() {
     });
     return tr;
   });
+  if (!rows.length && state.faces.length) {
+    const tr = document.createElement("tr"), td = document.createElement("td");
+    td.colSpan = 5; td.className = "empty";
+    td.textContent = state.filter === "known" ? "Nobody was recognised at this strictness. Try moving the slider to the right."
+                                              : "No unknown faces at this strictness.";
+    tr.appendChild(td); rows.push(tr);
+  }
   el.rows.replaceChildren(...rows);
   refreshHighlight();
 }

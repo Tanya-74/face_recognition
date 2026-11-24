@@ -84,6 +84,11 @@
       </div>
       <div class="stage"><canvas id="canvas" aria-label="Group photo with a box and a name on each face"></canvas></div>
       <h3>Faces found</h3>
+      <div id="chips" class="chips" role="group" aria-label="Show faces">
+        <button type="button" class="chip" data-filter="all" aria-pressed="true">All <span id="chip-all">0</span></button>
+        <button type="button" class="chip" data-filter="known" aria-pressed="false">Known <span id="chip-known">0</span></button>
+        <button type="button" class="chip" data-filter="unknown" aria-pressed="false">Unknown <span id="chip-unknown">0</span></button>
+      </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>#</th><th>Face</th><th>Name</th><th>Distance</th><th>Status</th></tr></thead>
