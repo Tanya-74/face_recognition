@@ -75,16 +75,23 @@ When the badge at the top turns green and says **"Ready - works offline"**, you 
 
 ## Use the page (3 steps)
 
-1. **Choose the folder of known people.** One photo per person, named after them, for example
-   `Priya Sharma.jpg`, `Tom Lee.png`.
-2. **Choose one group photo** (JPG, PNG, BMP or WEBP).
-3. **Press Run.** A progress bar shows while the folder is read (about 0.5 to 2 seconds per photo on a normal CPU).
-   You get the group photo with a box and a name on every face, and a list below with name, distance and
-   Known / Unknown.
+Everything fits on one screen: buttons at the top, the photo on the left, the list of faces on the right,
+the strictness slider and the download buttons at the bottom.
 
-**Strictness slider** (default 0.62): lower = stricter (more "Unknown", fewer wrong names); higher = more forgiving.
+1. **Choose the folder of known people** (button at the top, or drag the folder onto the left area).
+   One photo per person, named after them, for example `Priya Sharma.jpg`, `Tom Lee.png`.
+   The button **Known people** then shows small pictures of everyone, so you can check you picked the right folder.
+2. **Choose one group photo** (JPG, PNG, BMP or WEBP), by button or by dragging it in.
+3. **Press Run.** A progress bar with a percentage shows while the folder is read (about 0.5 to 2 seconds per photo
+   on a normal CPU). The photo then appears with a box and a name on every face. On the right you see how many
+   faces were found, how many are known and unknown, and one card per face. Point at a face (or a card) to
+   highlight the other one, click to select, and use **All / Known / Unknown** to filter.
+   **Download photo (PNG)** and **Download results (CSV)** are at the bottom.
+
+**Strictness slider** (bottom left, default 0.62): lower = stricter (more "Unknown", fewer wrong names); higher = more forgiving.
 It changes the labels at once without reading any photo again. Pressing Run again with the same folder skips the
-folder step (results are cached until the app is restarted).
+folder step (results are cached until the app is restarted). To try another group photo, drop it on the photo
+and press Run.
 
 The distance is a cosine distance: 0 = identical, bigger = more different. In our test
 (see [RESEARCH.md](RESEARCH.md)) the range 0.55 to 0.80 gave no mistakes, but real photos are harder,
@@ -94,14 +101,14 @@ so check the slider on your own photos.
 
 | Situation | What the app does |
 |---|---|
-| Folder photo with no face | Skipped, listed under "Notes about the folder" |
+| Folder photo with no face | Skipped, listed under **Folder notes** (button at the top) |
 | Folder photo with several faces | Uses the largest face, and says so in the notes |
 | File that is not a picture (`.txt`, broken `.jpg`, empty file) | Ignored or skipped with a note, no crash |
 | Two photos with the same name (`Bono.jpg`, `Bono.png`) | Both are used for that person, and a note says so |
 | Very large pictures | Shrunk to 1600 px on the long side before processing. Pictures over 120 megapixels or 40 MB are refused with a message |
 | Phone photos (rotated by EXIF) | Turned upright automatically |
 | Group photo with no faces | Message "No faces were found..." |
-| Very large folder | Sent in small batches with a progress bar and a **Cancel** button. Limit: 5000 photos |
+| Very large folder | Sent in small batches with a progress bar and a **Cancel** button. Limit: 5000 photos. The **Known people** drawer shows the first 48, then "Show all" |
 | Models missing | The page shows "Face models not found" and tells you to repeat step 4 |
 
 ## Test it with the WiFi turned off

@@ -28,7 +28,7 @@ to install Archify yourself. Each box in the diagram points at its file in `app/
 
 | Part | File | What it does |
 |---|---|---|
-| Web page | `app/static/` | The three steps, the progress bar, the slider, the picture with boxes, summary cards, filters, the results list and the downloads. Plain HTML, CSS and JavaScript, no outside libraries, fonts or links. See "The web page" below. |
+| Web page | `app/static/` | A one-screen dashboard: top bar with the actions, the picture with boxes, a panel of face cards with summary numbers and filters, a bottom bar with the slider and downloads, and two drawers. Plain HTML, CSS and JavaScript, no outside libraries, fonts or links. See "The web page" below. |
 | FastAPI server | `app/main.py` | Serves the page and a small JSON API. Listens on `127.0.0.1` only, so other computers cannot reach it. Loads the models in the background when it starts. |
 | Engine | `app/engine.py` | Everything that is not "web" and not "face library": checks and shrinks pictures, picks the largest face, handles bad files with plain-English messages, keeps the cache, finds the nearest person. |
 | Embedding cache | `Session` class in `app/engine.py` | The known people's embeddings, in memory, per browser visit. Lets you press Run again without reading the folder again. |
@@ -41,27 +41,46 @@ to install Archify yourself. Each box in the diagram points at its file in `app/
 The page is three plain files in `app/static/`: `index.html` (structure), `style.css` (look) and `app.js` (behaviour).
 It never talks to anything except this app's own API. Everything below happens **in the browser** and needs no server call.
 
+**One screen, like a dashboard.** On a laptop (1366x768 and up) nothing scrolls except the list of faces and the pop-up drawers:
+
+```
++----------------------------------------------------------------------------------------------+
+| Title, status | [Choose folder] [Choose group photo] [Run] [Cancel] |  [Known people] [Folder notes] |  top bar
++---------------------------------------------+------------------------------------------------+
+|                                             |  11 faces | 7 known | 4 unknown                |
+|  group photo, scaled to fit                 |  [ All ] [ Known ] [ Unknown ]                 |
+|  (two drop zones before the first run;      |  card: crop, name, distance, badge, photo      |  main area
+|   progress bar while running)               |  card ...   (this list scrolls by itself)      |  about 65% / 35%
++---------------------------------------------+------------------------------------------------+
+| Strictness [=====o=====] 0.62  one-line help                    [Download PNG] [Download CSV] |  bottom bar
++----------------------------------------------------------------------------------------------+
+```
+
 | What you see | How it works |
 |---|---|
-| **Drop zones** for the folder and the group photo | Dashed boxes that light up when you drag over them. A dropped folder is read with the browser's folder API; if the browser cannot do that, the dropped files are used. Dropping is ignored while Run is working. Choosing with the button goes through the same code. |
-| **Summary cards** (faces, known, unknown) | Counted from the answer the server already gave, using the current slider value. |
-| **Photo with boxes** | A `<canvas>`. Hovering a box highlights it and its row; clicking selects it. The boxes fade in one by one after Run. |
-| **Results list** | One row per face: a small crop cut from the group photo (drawn on a hidden canvas), the matching folder photo (read from the local file, shown through a `blob:` address, never uploaded), name, distance, status. For unknown faces it says "closest: Name". Rows can be reached with Tab and selected with Enter or Space. |
-| **Filter chips** All / Known / Unknown | Hide rows and boxes in the browser. The counts update with the slider. |
-| **Gallery of known people** | Thumbnails of the folder photos, shown right after the folder is chosen, so mistakes (wrong folder, wrong file) are visible before Run. Collapsible. A folder of more than 48 people shows the first 48 and a "Show all" button. |
-| **Progress bar with percentage** | Real percentage while the folder is read (photos done / photos total). While the server looks at the group photo the time is unknown, so the bar just moves and shows no number. |
-| **Downloads** | The annotated photo (PNG, all faces at the current slider value) and the results (CSV, UTF-8 with a BOM so Excel shows accents correctly; names that start with `=`, `+`, `-` or `@` get a leading `'` so a spreadsheet cannot treat them as a formula). Both files are made in the browser. |
-| **Look** | Light colour scheme, large buttons, visible dark-blue focus rings, a green tick on finished steps, a layout that fits a phone-width screen. |
-| **Animations** | Short and subtle. If the computer is set to "reduce motion" (`prefers-reduced-motion`), the animations and smooth scrolling are switched off. |
+| **Top bar** | The three actions as compact buttons, with the chosen folder and photo names in small text beneath them (cut with "..." when long; the full text is the tooltip). Cancel appears only while running. "Known people" and "Folder notes" buttons appear when there is something to show. |
+| **Empty state with two drop zones** | Before the first result the left area shows two big dashed zones (folder, group photo) and one line of help. They light up while you drag over them, turn green when filled, and can also be clicked. Dropping is ignored while Run is working. |
+| **Drop after a result** | Once a result is on screen the zones are gone; the whole photo area accepts drops instead: one picture means a new group photo, a folder (or several files) means a new folder. A dropped folder is read with the browser's folder API; if the browser cannot do that, the dropped files are used. |
+| **Photo with boxes** | A `<canvas>` that a small script sizes to fit its area exactly (aspect ratio kept, redone whenever the window changes size). Hovering a box highlights it and its card; clicking selects it. The boxes fade in one by one after Run. |
+| **Name labels that do not pile up** | Each label first tries the spot above its box. If there is no room, or it would cover another label, the text is shrunk (down to 60 %), then tried inside the box (shortened with "..." to fit the box width), then below the box. The last resort is just the face number. Big faces get the best spots first. Boxes are drawn before labels so no box line crosses a name. |
+| **Summary numbers and filter chips** | Faces / Known / Unknown at the top of the right panel, counted from the answer the server already gave using the current slider value. The chips (All / Known / Unknown) hide cards and boxes in the browser. |
+| **Face cards** | One card per face: a small crop cut from the group photo (on a hidden canvas), the face number, the name, the distance and a Known / Unknown badge. Known faces also show the matching folder photo, read from the local file and shown through a `blob:` address (never uploaded). Unknown faces say "closest: Name". Cards can be reached with Tab and selected with Enter or Space. |
+| **Drawers** | "Known people" (thumbnails of the folder photos, so a wrong folder or file is visible before Run) and "Folder notes" are native `<dialog>` drawers that slide in from the right. They take no space until opened, close with Escape, the Close button or a click outside, and give focus back to the button. A folder of more than 48 people shows the first 48 and a "Show all" button. |
+| **Progress** | A bar with a percentage, shown over the photo area. The percentage is real while the folder is read (photos done / total). While the server looks at the group photo the time is unknown, so the bar just moves and shows no number. |
+| **Bottom bar** | The strictness slider with its value and a one-line explanation, and the two downloads: the annotated photo (PNG, all faces at the current slider value) and the results (CSV, UTF-8 with a BOM so Excel shows accents correctly; names that start with `=`, `+`, `-` or `@` get a leading `'` so a spreadsheet cannot treat them as a formula). Both files are made in the browser. |
+| **Phones and very short windows** | Under 900 px wide the parts stack and the page scrolls normally. In a window shorter than 520 px the page may also scroll, rather than squashing everything. |
+| **Animations** | Short and subtle. If the computer is set to "reduce motion" (`prefers-reduced-motion`), animations and smooth scrolling are switched off. |
 
 What did **not** change: the server, the API and the models. The page still receives the nearest person and the distance for
 every face, and decides "Known / Unknown" itself (see the trade-off below).
 
 **UI trade-offs.** There is no framework, so the code is one long `app.js` that keeps its state in a single object; this
 keeps the page free of outside code and easy to read from top to bottom, but it will get harder to change if the page grows a lot.
+Fitting everything on one screen means the photo is shown smaller than it would be on a scrolling page (a very wide photo is
+limited by the width of its area), and only about four face cards are visible at once on a 1366x650 browser window; the list scrolls.
 The matched folder photos and the gallery use the original files, so a folder of huge photos makes those thumbnails slow to
-appear (the gallery therefore builds only when opened and loads lazily). Everything above is tested with a headless
-Edge browser (synthetic drag events, real downloads), **not** by dropping a real folder from Windows Explorer or on other browsers.
+appear (the drawer therefore builds only when opened and loads lazily). Everything above is tested with a headless
+Edge browser (synthetic drag events, real downloads, three window sizes), **not** by dropping a real folder from Windows Explorer or on other browsers.
 
 ## Trade-offs (what we chose, and what it costs)
 
