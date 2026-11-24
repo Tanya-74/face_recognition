@@ -7,17 +7,20 @@ const BATCH = 6;                       // folder photos sent per request
 
 const el = {
   status: $("engine-status"), error: $("error"), lib: $("lib"),
-  pickFolder: $("pick-folder"), folderInput: $("folder-input"), folderInfo: $("folder-info"),
-  pickGroup: $("pick-group"), groupInput: $("group-input"), groupInfo: $("group-info"),
+  pickFolder: $("pick-folder"), folderInput: $("folder-input"), folderInfo: $("folder-info"), zoneFolder: $("zone-folder"),
+  pickGroup: $("pick-group"), groupInput: $("group-input"), groupInfo: $("group-info"), zoneGroup: $("zone-group"),
   run: $("run"), cancel: $("cancel"),
+  stage: $("stage"), empty: $("empty"), photo: $("results"), canvas: $("canvas"),
   progress: $("progress"), progressPct: $("progress-pct"), barFill: $("bar-fill"), progressText: $("progress-text"),
   threshold: $("threshold"), thresholdValue: $("threshold-value"),
-  results: $("results"), summary: $("summary"), canvas: $("canvas"), rows: $("rows"),
+  panel: document.querySelector(".panel"), summary: $("summary"), panelEmpty: $("panel-empty"), rows: $("rows"),
   stats: $("stats"), statTotal: $("stat-total"), statKnown: $("stat-known"), statUnknown: $("stat-unknown"),
   chips: $("chips"), chipAll: $("chip-all"), chipKnown: $("chip-known"), chipUnknown: $("chip-unknown"),
-  gallery: $("gallery"), galleryTitle: $("gallery-title"), galleryGrid: $("gallery-grid"), galleryMore: $("gallery-more"),
+  openGallery: $("open-gallery"), galleryCount: $("gallery-count"), galleryDialog: $("gallery-dialog"),
+  galleryTitle: $("gallery-title"), galleryGrid: $("gallery-grid"), galleryMore: $("gallery-more"),
+  openNotes: $("open-notes"), notesCount: $("notes-count"), notesDialog: $("notes-dialog"),
+  notesTitle: $("notes-title"), notesList: $("notes-list"),
   tools: $("tools"), dlPng: $("dl-png"), dlCsv: $("dl-csv"),
-  notes: $("notes"), notesTitle: $("notes-title"), notesList: $("notes-list"),
 };
 
 const state = {
@@ -48,7 +51,6 @@ function showError(msg, warn = false) {
   el.error.textContent = msg;
   el.error.classList.toggle("warn", warn);
   el.error.hidden = false;
-  el.error.scrollIntoView({ behavior: scrollMode(), block: "nearest" });
 }
 function clearError() { el.error.hidden = true; el.error.textContent = ""; }
 /* restart a CSS animation class */
@@ -91,14 +93,12 @@ function makeCrops() {
 function folderKey() {
   return state.folderFiles.map((f) => `${f.name}|${f.size}|${f.lastModified}`).join("\n");
 }
-function markDone(id, number, done) {
-  const card = $(id);
-  card.classList.toggle("done", done);
-  card.querySelector(".step-no").textContent = done ? "✓" : number;
-}
+/* the short text under the buttons and inside the drop zones */
+function setFolderNote(text) { el.folderInfo.textContent = text; el.folderInfo.title = text; el.zoneFolder.textContent = text; }
+function setGroupNote(text) { el.groupInfo.textContent = text; el.groupInfo.title = text; el.zoneGroup.textContent = text; }
 function updateRunButton() {
-  markDone("card-1", "1", state.folderFiles.length > 0);   // green tick on finished steps
-  markDone("card-2", "2", !!state.groupFile);
+  $("drop-folder").classList.toggle("done", state.folderFiles.length > 0);   // green when a step is finished
+  $("drop-group").classList.toggle("done", !!state.groupFile);
   el.run.disabled = !(state.ready && state.folderFiles.length && state.groupFile);
 }
 function setProgress(fraction, text, busy = false) {
@@ -152,8 +152,15 @@ async function pollStatus() {
   setTimeout(pollStatus, 1000);
 }
 
+/* ---------- pop-up drawers ---------- */
+document.querySelectorAll("dialog.drawer").forEach((dlg) => {
+  dlg.addEventListener("click", (ev) => { if (ev.target === dlg) dlg.close(); });          // click on the dark area
+  dlg.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => dlg.close()));
+});
+
 /* ---------- step 1: folder ---------- */
 el.pickFolder.addEventListener("click", () => el.folderInput.click());
+$("drop-folder").addEventListener("click", () => { if (!state.busy) el.folderInput.click(); });
 el.folderInput.addEventListener("change", () => setFolder(Array.from(el.folderInput.files)));
 
 function setFolder(all) {
@@ -162,56 +169,56 @@ function setFolder(all) {
   state.folderIgnored = all.length - state.folderFiles.length;
   indexPeople();
   if (!all.length) {
-    el.folderInfo.textContent = "";
+    setFolderNote("");
   } else if (!state.folderFiles.length) {
-    el.folderInfo.textContent = "";
+    setFolderNote("");
     showError("That folder has no pictures in it. Choose a folder with JPG, PNG, BMP or WEBP photos.");
   } else {
     let t = `✓ ${plural(state.folderFiles.length, "photo", "photos")} found`;
     if (state.folderIgnored) t += ` (${plural(state.folderIgnored, "other file", "other files")} will be ignored)`;
-    el.folderInfo.textContent = t;
+    setFolderNote(t);
   }
   renderGallery();
   updateRunButton();
 }
 
-/* ---------- gallery of the known people (collapsible, built from the local files) ---------- */
-const GALLERY_FIRST = 48;                      // a huge folder is shown in two steps to keep the page light
+/* ---------- gallery of the known people (a drawer, built from the local files) ---------- */
+const GALLERY_FIRST = 48;                      // a huge folder is shown in two steps to keep it light
 let galleryShowAll = false;
 
 function renderGallery() {
   const names = Array.from(state.people.keys());
   galleryShowAll = false;
   el.galleryGrid.replaceChildren();
-  el.gallery.hidden = !names.length;
-  if (!names.length) return;
+  el.openGallery.hidden = !names.length;
+  el.galleryCount.textContent = `(${names.length})`;
   el.galleryTitle.textContent = `Known people in this folder (${names.length})`;
-  el.gallery.open = names.length <= 12;        // small folder: open; big folder: collapsed
-  buildGallery();
+  if (el.galleryDialog.open) buildGallery();
 }
 function buildGallery() {
-  if (!el.gallery.open) return;                // built when the user opens it
   const names = Array.from(state.people.keys());
   const shown = galleryShowAll ? names : names.slice(0, GALLERY_FIRST);
-  if (el.galleryGrid.childElementCount === shown.length) return;
-  el.galleryGrid.replaceChildren(...shown.map((n) => {
-    const li = document.createElement("li");
-    const img = document.createElement("img");
-    img.className = "thumb"; img.alt = `Photo of ${n}`; img.loading = "lazy"; img.decoding = "async";
-    img.src = photoUrl(n);
-    img.addEventListener("error", () => { img.removeAttribute("src"); img.alt = "(cannot show this photo)"; });
-    const cap = document.createElement("span"); cap.textContent = n; cap.title = n;
-    li.append(img, cap);
-    return li;
-  }));
+  if (el.galleryGrid.childElementCount !== shown.length) {
+    el.galleryGrid.replaceChildren(...shown.map((n) => {
+      const li = document.createElement("li");
+      const img = document.createElement("img");
+      img.className = "thumb"; img.alt = `Photo of ${n}`; img.loading = "lazy"; img.decoding = "async";
+      img.src = photoUrl(n);
+      img.addEventListener("error", () => { img.removeAttribute("src"); img.alt = "(cannot show this photo)"; });
+      const cap = document.createElement("span"); cap.textContent = n; cap.title = n;
+      li.append(img, cap);
+      return li;
+    }));
+  }
   el.galleryMore.hidden = galleryShowAll || names.length <= GALLERY_FIRST;
   el.galleryMore.textContent = `Show all ${names.length} people`;
 }
-el.gallery.addEventListener("toggle", buildGallery);
+el.openGallery.addEventListener("click", () => { buildGallery(); el.galleryDialog.showModal(); });
 el.galleryMore.addEventListener("click", () => { galleryShowAll = true; buildGallery(); });
 
 /* ---------- step 2: group photo ---------- */
 el.pickGroup.addEventListener("click", () => el.groupInput.click());
+$("drop-group").addEventListener("click", () => { if (!state.busy) el.groupInput.click(); });
 el.groupInput.addEventListener("change", () => setGroup(el.groupInput.files[0] || null));
 
 function setGroup(f, extra = "") {
@@ -219,15 +226,15 @@ function setGroup(f, extra = "") {
   state.groupFile = f;
   if (f && !f.type.startsWith("image/") && !IMAGE_EXT.test(f.name)) {
     state.groupFile = null;
-    el.groupInfo.textContent = "";
+    setGroupNote("");
     showError("That file is not a picture. Please choose a JPG, PNG, BMP or WEBP photo.");
   } else {
-    el.groupInfo.textContent = f ? `✓ ${f.name}${extra}` : "";
+    setGroupNote(f ? `✓ ${f.name}${extra}` : "");
   }
   updateRunButton();
 }
 
-/* ---------- drag and drop (folder and group photo) ---------- */
+/* ---------- drag and drop ---------- */
 const MAX_DROPPED = 20000;                     // safety stop when walking a dropped folder
 
 function hasFiles(ev) { return ev.dataTransfer && Array.from(ev.dataTransfer.types || []).includes("Files"); }
@@ -255,14 +262,14 @@ async function filesFromDrop(dt) {
   return out;
 }
 
-function wireDrop(zone, onDrop) {
+function wireDrop(zone, onDrop, enabled = () => true) {
   let depth = 0;
   zone.addEventListener("dragenter", (ev) => {
-    if (!hasFiles(ev) || state.busy) return;
+    if (!hasFiles(ev) || state.busy || !enabled()) return;
     ev.preventDefault(); depth++; zone.classList.add("over");
   });
   zone.addEventListener("dragover", (ev) => {
-    if (!hasFiles(ev)) return;
+    if (!hasFiles(ev) || !enabled()) return;
     ev.preventDefault();
     ev.dataTransfer.dropEffect = state.busy ? "none" : "copy";
   });
@@ -270,23 +277,34 @@ function wireDrop(zone, onDrop) {
     depth = Math.max(0, depth - 1);
     if (!depth) zone.classList.remove("over");
   });
-  zone.addEventListener("drop", async (ev) => {
+  zone.addEventListener("drop", (ev) => {
+    if (!enabled()) return;
     ev.preventDefault();
     depth = 0; zone.classList.remove("over");
     if (state.busy || !hasFiles(ev)) return;
     onDrop(ev.dataTransfer);
   });
 }
-wireDrop($("drop-folder"), async (dt) => {
-  el.folderInfo.textContent = "Reading the dropped folder...";
-  setFolder(await filesFromDrop(dt));
-});
-wireDrop($("drop-group"), (dt) => {
+function dropFolder(dt) {
+  setFolderNote("Reading the dropped folder...");
+  filesFromDrop(dt).then(setFolder);
+}
+function dropGroup(dt) {
   const files = Array.from(dt.files);
   const pics = files.filter((f) => f.type.startsWith("image/") || IMAGE_EXT.test(f.name));
   if (pics.length) setGroup(pics[0], pics.length > 1 ? ` (only the first of ${pics.length} photos is used)` : "");
   else setGroup(files[0] || null);              // shows the "not a picture" message
-});
+}
+wireDrop($("drop-folder"), dropFolder);
+wireDrop($("drop-group"), dropGroup);
+/* once a result is on screen the drop zones are gone: a dropped folder is a new folder, a single photo a new group photo */
+wireDrop(el.stage, (dt) => {
+  const isFolder = Array.from(dt.items || []).some((i) => {
+    const e = i.kind === "file" && i.webkitGetAsEntry ? i.webkitGetAsEntry() : null;
+    return e && e.isDirectory;
+  }) || dt.files.length > 1;
+  if (isFolder) dropFolder(dt); else dropGroup(dt);
+}, () => !el.photo.hidden);
 /* a file dropped outside a drop zone must not make the browser leave the page */
 ["dragover", "drop"].forEach((t) => window.addEventListener(t, (ev) => { if (hasFiles(ev)) ev.preventDefault(); }));
 
@@ -350,7 +368,7 @@ async function processFolderIfNeeded() {
   if (used === 0) {
     showNotes();
     throw new Error("None of the photos in the folder showed a face I could use, so there is nobody to look for. " +
-      "Check the notes below, then choose another folder.");
+      "Open \"Folder notes\" at the top to see why, then choose another folder.");
   }
   state.sessionId = session_id;
   state.loadedKey = folderKey();
@@ -373,13 +391,15 @@ async function analyseGroup() {
   state.hoverId = state.selectedId = null;
   state.image = await loadImage(data.image);
   makeCrops();
-  el.results.hidden = false;
+  el.empty.hidden = true;
+  el.photo.hidden = false;
+  fitCanvas();
   state.animateRows = true;
   startReveal();                               // before the first draw, so the finished photo never flashes
   render();
-  replay(el.results, "enter");
+  replay(el.photo, "enter");
+  replay(el.panel, "enter");
   showNotes();
-  el.results.scrollIntoView({ behavior: scrollMode(), block: "start" });
 }
 
 function loadImage(src) {
@@ -392,13 +412,15 @@ function loadImage(src) {
 }
 
 function showNotes() {
-  if (!state.notes.length) { el.notes.hidden = true; return; }
-  el.notes.hidden = false;
-  el.notesTitle.textContent = `Notes about the folder (${state.notes.length})`;
-  el.notesList.replaceChildren(...state.notes.map((n) => {
-    const li = document.createElement("li"); li.textContent = n; return li;
+  const n = state.notes.length;
+  el.openNotes.hidden = !n;
+  el.notesCount.textContent = `(${n})`;
+  el.notesTitle.textContent = `Notes about the folder (${n})`;
+  el.notesList.replaceChildren(...state.notes.map((t) => {
+    const li = document.createElement("li"); li.textContent = t; return li;
   }));
 }
+el.openNotes.addEventListener("click", () => el.notesDialog.showModal());
 
 /* ---------- threshold + drawing (no server calls here) ---------- */
 function labelFor(face, t) {
@@ -424,8 +446,9 @@ function render() {
   } else {
     el.summary.textContent = `${plural(faces.length, "face", "faces")} found: ${knownCount} known, ${faces.length - knownCount} unknown.`;
   }
-  el.summary.classList.toggle("visually-hidden", faces.length > 0);   // the cards show the numbers
-  el.stats.hidden = el.tools.hidden = !faces.length;
+  el.summary.classList.toggle("visually-hidden", faces.length > 0);   // the number cards show it instead
+  el.panelEmpty.hidden = true;
+  el.stats.hidden = el.chips.hidden = el.tools.hidden = !faces.length;
   el.statTotal.textContent = faces.length;
   el.statKnown.textContent = knownCount;
   el.statUnknown.textContent = faces.length - knownCount;
@@ -452,39 +475,106 @@ el.chips.addEventListener("click", (ev) => {
   buildRows();
 });
 
-/* ---------- picture with boxes ---------- */
+/* ---------- the photo: sized to fit the area (no scrolling), boxes and labels drawn on a canvas ---------- */
 function activeId() { return state.hoverId ?? state.selectedId; }
+
+/* shows the whole photo inside the left area, keeping its shape */
+function fitCanvas() {
+  if (!state.image || el.photo.hidden) return;
+  const pad = 12;
+  const aw = el.photo.clientWidth - pad * 2, ah = el.photo.clientHeight - pad * 2;
+  if (aw < 40 || ah < 40) return;
+  const ratio = state.image.naturalWidth / state.image.naturalHeight;
+  let w = aw, h = w / ratio;
+  if (h > ah) { h = ah; w = h * ratio; }
+  el.canvas.style.width = Math.floor(w) + "px";
+  el.canvas.style.height = Math.floor(h) + "px";
+}
+new ResizeObserver(() => {
+  fitCanvas();
+  if (state.image && state.faces.length) drawCanvas();
+}).observe(el.photo);
 
 function drawCanvas() {
   const img = state.image;
   const c = el.canvas;
   if (c.width !== img.naturalWidth) { c.width = img.naturalWidth; c.height = img.naturalHeight; }
-  paint(c, visibleFaces(), activeId(), state.reveal);
+  const s = c.width / (c.clientWidth || c.width);            // picture pixels per screen pixel
+  paint(c, visibleFaces(), activeId(), state.reveal, { fontBase: Math.max(11, 13 * s), line: Math.max(1.5, 2 * s) });
+}
+
+const fontCss = (px) => `600 ${px}px "Segoe UI", system-ui, Arial, sans-serif`;
+
+/* Where does each name label go? First choice: above the box. If that has no room or would
+   cover another label, shrink the text a little, then try inside the box, then below the box.
+   Last resort: just the face number inside the box. */
+function layoutLabels(g, c, faces, fontBase) {
+  const placed = [], spots = new Map();
+  const clash = (r) => placed.some((p) => r.x < p.x + p.w && r.x + r.w > p.x && r.y < p.y + p.h && r.y + r.h > p.y);
+  const inPicture = (r) => r.x >= -0.5 && r.y >= -0.5 && r.x + r.w <= c.width + 0.5 && r.y + r.h <= c.height + 0.5;
+  const fitText = (text, maxW) => {                          // shorten with "..." so it is not wider than maxW
+    if (g.measureText(text).width <= maxW) return text;
+    let t = text;
+    while (t.length > 3 && g.measureText(t + "…").width > maxW) t = t.slice(0, -1);
+    return t.length > 3 ? t + "…" : null;
+  };
+  [...faces].sort((a, b) => b.box.w * b.box.h - a.box.w * a.box.h).forEach((f) => {
+    const x = f.box.x * c.width, y = f.box.y * c.height, w = f.box.w * c.width, h = f.box.h * c.height;
+    const full = `${f.id}. ${f.name}`;
+    let spot = null;
+    for (const k of [1, 0.85, 0.72, 0.6]) {
+      const px = fontBase * k, padX = px * 0.4, bh = px * 1.45;
+      g.font = fontCss(px);
+      const tw = g.measureText(full).width + padX * 2;
+      const cx = Math.min(Math.max(0, x), Math.max(0, c.width - tw));
+      const inside = fitText(full, w - padX * 2);
+      const tries = [
+        { x: cx, y: y - bh, w: tw, text: full },                                              // above the box
+        inside && { x: x, y: y, w: g.measureText(inside).width + padX * 2, text: inside },     // inside, at the top
+        { x: cx, y: y + h, w: tw, text: full },                                               // below the box
+        inside && { x: x, y: y + h - bh, w: g.measureText(inside).width + padX * 2, text: inside }, // inside, at the bottom
+      ];
+      for (const t of tries) {
+        if (!t) continue;
+        const r = { x: t.x, y: t.y, w: t.w, h: bh, text: t.text, px, padX };
+        if (inPicture(r) && !clash(r)) { spot = r; break; }
+      }
+      if (spot) break;
+    }
+    if (!spot) {                                              // no room anywhere: only the face number
+      const px = fontBase * 0.8; g.font = fontCss(px);
+      const w2 = g.measureText(String(f.id)).width + px * 0.8;
+      spot = { x: x, y: y, w: w2, h: px * 1.45, text: String(f.id), px, padX: px * 0.4 };
+    }
+    placed.push(spot); spots.set(f.id, spot);
+  });
+  return spots;
 }
 
 /* draws the photo and the face boxes on any canvas (the page, or a hidden one for the PNG download) */
-function paint(c, faces, act, rv) {
+function paint(c, faces, act, rv, opts = {}) {
   const g = c.getContext("2d");
   g.drawImage(state.image, 0, 0, c.width, c.height);
-  const fontPx = Math.max(15, Math.round(c.width / 55));
-  const line = Math.max(2, Math.round(c.width / 450));
-  g.font = `600 ${fontPx}px "Segoe UI", system-ui, Arial, sans-serif`;
-  g.textBaseline = "middle";
+  const fontBase = opts.fontBase || Math.max(15, Math.round(c.width / 55));
+  const line = opts.line || Math.max(2, Math.round(c.width / 450));
+  const spots = layoutLabels(g, c, faces, fontBase);
   const now = performance.now();
-  faces.forEach((f, k) => {
-    g.globalAlpha = rv ? Math.min(1, Math.max(0, ((now - rv.start) - (k / Math.max(1, rv.n)) * rv.dur) / 300)) : 1;
+  g.textBaseline = "middle";
+  const alphaOf = (f) => rv ? Math.min(1, Math.max(0, ((now - rv.start) - (faces.indexOf(f) / Math.max(1, rv.n)) * rv.dur) / 300)) : 1;
+  const colorOf = (f) => (f.known ? "#17803d" : "#b45309");
+  const ordered = [...faces.filter((f) => f.id !== act), ...faces.filter((f) => f.id === act)];   // highlighted face last, on top
+  ordered.forEach((f) => {                                   // 1st pass: all the boxes
+    g.globalAlpha = alphaOf(f);
     const x = f.box.x * c.width, y = f.box.y * c.height, w = f.box.w * c.width, h = f.box.h * c.height;
-    const color = f.known ? "#17803d" : "#b45309";
     const on = f.id === act;
-    if (on) { g.fillStyle = color + "33"; g.fillRect(x, y, w, h); }
-    g.lineWidth = on ? line * 2.5 : line; g.strokeStyle = color; g.strokeRect(x, y, w, h);
-    const text = `${f.id}. ${f.name}`;
-    const padX = fontPx * 0.45, boxH = fontPx * 1.5;
-    const tw = g.measureText(text).width + padX * 2;
-    let lx = Math.min(Math.max(0, x), Math.max(0, c.width - tw));
-    let ly = y - boxH; if (ly < 0) ly = y;           // no room above: put the label inside the box
-    g.fillStyle = color; g.fillRect(lx, ly, tw, boxH);
-    g.fillStyle = "#fff"; g.fillText(text, lx + padX, ly + boxH / 2);
+    if (on) { g.fillStyle = colorOf(f) + "33"; g.fillRect(x, y, w, h); }
+    g.lineWidth = on ? line * 2.5 : line; g.strokeStyle = colorOf(f); g.strokeRect(x, y, w, h);
+  });
+  ordered.forEach((f) => {                                   // 2nd pass: all the labels, so no box line crosses a name
+    g.globalAlpha = alphaOf(f);
+    const s = spots.get(f.id);
+    g.fillStyle = colorOf(f); g.fillRect(s.x, s.y, s.w, s.h);
+    g.font = fontCss(s.px); g.fillStyle = "#fff"; g.fillText(s.text, s.x + s.padX, s.y + s.h / 2);
   });
   g.globalAlpha = 1;
 }
@@ -492,7 +582,7 @@ function paint(c, faces, act, rv) {
 /* ---------- downloads (made in the browser, nothing is sent anywhere) ---------- */
 function baseName() {
   const n = state.groupFile ? state.groupFile.name.replace(/\.[^.]*$/, "") : "group";
-  return n.replace(/[\/:*?"<>|]+/g, "_").trim() || "group";
+  return n.replace(/[\\/:*?"<>|]+/g, "_").trim() || "group";
 }
 function saveBlob(blob, filename) {
   const a = document.createElement("a");
@@ -517,7 +607,7 @@ el.dlCsv.addEventListener("click", () => {
   const t = Number(el.threshold.value).toFixed(2);
   const rows = [["Face number", "Name", "Status", "Distance", "Closest known person", "Strictness used", "Group photo"]];
   state.faces.forEach((f) => rows.push([f.id, f.name, f.known ? "Known" : "Unknown", f.distance.toFixed(3), f.nearest, t, state.groupFile ? state.groupFile.name : ""]));
-  const text = "\uFEFF" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";   // BOM so Excel shows accents correctly
+  const text = "﻿" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";   // BOM so Excel shows accents correctly
   saveBlob(new Blob([text], { type: "text/csv;charset=utf-8" }), baseName() + "_results.csv");
 });
 
@@ -560,16 +650,16 @@ function selectFace(id, scrollRow = false) {
   state.selectedId = state.selectedId === id ? null : id;
   refreshHighlight();
   if (scrollRow && state.selectedId !== null) {
-    const tr = el.rows.querySelector(`tr[data-id="${id}"]`);
-    if (tr) tr.scrollIntoView({ block: "nearest", behavior: scrollMode() });
+    const card = el.rows.querySelector(`li[data-id="${id}"]`);
+    if (card) card.scrollIntoView({ block: "nearest", behavior: scrollMode() });     // scrolls the list only
   }
 }
 function refreshHighlight() {
-  el.rows.querySelectorAll("tr").forEach((tr) => {
-    const id = Number(tr.dataset.id);
-    tr.classList.toggle("hover", id === state.hoverId);
-    tr.classList.toggle("selected", id === state.selectedId);
-    tr.setAttribute("aria-selected", id === state.selectedId ? "true" : "false");
+  el.rows.querySelectorAll("li[data-id]").forEach((li) => {
+    const id = Number(li.dataset.id);
+    li.classList.toggle("hover", id === state.hoverId);
+    li.classList.toggle("selected", id === state.selectedId);
+    li.setAttribute("aria-selected", id === state.selectedId ? "true" : "false");
   });
   drawCanvas();
 }
@@ -587,66 +677,67 @@ el.canvas.addEventListener("click", (ev) => {
   if (f) selectFace(f.id, true);
 });
 
-/* ---------- results list ---------- */
+/* ---------- list of faces (cards) ---------- */
 function buildRows() {
   const shown = visibleFaces();
-  let rowsIndex = 0;
-  const rows = shown.map((f) => {
-    const tr = document.createElement("tr");
-    tr.dataset.id = f.id;
-    if (state.animateRows) { tr.classList.add("enter"); tr.style.setProperty("--i", Math.min(rowsIndex++, 12)); }
-    tr.tabIndex = 0;
-    tr.title = "Click to select this face";
-    const cell = (cls) => { const td = document.createElement("td"); if (cls) td.className = cls; tr.appendChild(td); return td; };
-    cell().textContent = String(f.id);
+  let index = 0;
+  const cards = shown.map((f) => {
+    const li = document.createElement("li");
+    li.className = "face-card";
+    li.dataset.id = f.id;
+    if (state.animateRows) { li.classList.add("enter"); li.style.setProperty("--i", Math.min(index++, 12)); }
+    li.tabIndex = 0;
+    li.title = "Click to select this face";
 
-    const faceTd = cell("face-cell");
+    const cropWrap = document.createElement("div"); cropWrap.className = "crop-wrap";
     const crop = document.createElement("img");
-    crop.className = "thumb"; crop.alt = `Face ${f.id} in the group photo`; crop.src = state.crops[f.id - 1] || "";
-    faceTd.appendChild(crop);
+    crop.className = "thumb face-img"; crop.alt = `Face ${f.id} in the group photo`; crop.src = state.crops[f.id - 1] || "";
+    const no = document.createElement("span"); no.className = "face-no"; no.textContent = String(f.id);
+    cropWrap.append(crop, no);
 
-    const nameTd = cell("name");
-    const wrap = document.createElement("div"); wrap.className = "name-wrap";
+    const main = document.createElement("div"); main.className = "face-main";
+    const nm = document.createElement("span"); nm.className = "person"; nm.textContent = f.name; main.appendChild(nm);
+    if (!f.known) {
+      const hint = document.createElement("span");
+      hint.className = "hint";
+      hint.textContent = `closest: ${f.nearest}`;
+      main.appendChild(hint);
+    }
+    const dist = document.createElement("span"); dist.className = "dist"; dist.textContent = `distance ${f.distance.toFixed(3)}`;
+    main.appendChild(dist);
+
+    const side = document.createElement("div"); side.className = "face-side";
     const url = f.known ? photoUrl(f.nearest) : null;
     if (url) {
       const ref = document.createElement("img");
       ref.className = "thumb ref"; ref.alt = `Photo of ${f.nearest} from the folder`; ref.src = url;
       ref.decoding = "async"; ref.addEventListener("error", () => ref.remove());
-      wrap.appendChild(ref);
+      side.appendChild(ref);
     }
-    const txt = document.createElement("div");
-    const nm = document.createElement("span"); nm.className = "person"; nm.textContent = f.name; txt.appendChild(nm);
-    if (!f.known) {
-      const hint = document.createElement("span");
-      hint.className = "hint";
-      hint.textContent = `closest: ${f.nearest}`;
-      txt.appendChild(hint);
-    }
-    wrap.appendChild(txt); nameTd.appendChild(wrap);
-
-    cell().textContent = f.distance.toFixed(3);
     const b = document.createElement("span");
     b.className = "badge " + (f.known ? "known" : "unknown");
     b.textContent = f.known ? "Known" : "Unknown";
-    cell().appendChild(b);
-    tr.addEventListener("mouseenter", () => setHover(f.id));
-    tr.addEventListener("mouseleave", () => setHover(null));
-    tr.addEventListener("focus", () => setHover(f.id));
-    tr.addEventListener("blur", () => setHover(null));
-    tr.addEventListener("click", () => selectFace(f.id));
-    tr.addEventListener("keydown", (ev) => {
+    side.appendChild(b);
+
+    li.append(cropWrap, main, side);
+    li.addEventListener("mouseenter", () => setHover(f.id));
+    li.addEventListener("mouseleave", () => setHover(null));
+    li.addEventListener("focus", () => setHover(f.id));
+    li.addEventListener("blur", () => setHover(null));
+    li.addEventListener("click", () => selectFace(f.id));
+    li.addEventListener("keydown", (ev) => {
       if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectFace(f.id); }
     });
-    return tr;
+    return li;
   });
-  if (!rows.length && state.faces.length) {
-    const tr = document.createElement("tr"), td = document.createElement("td");
-    td.colSpan = 5; td.className = "empty";
-    td.textContent = state.filter === "known" ? "Nobody was recognised at this strictness. Try moving the slider to the right."
+  if (!cards.length && state.faces.length) {
+    const li = document.createElement("li");
+    li.className = "empty";
+    li.textContent = state.filter === "known" ? "Nobody was recognised at this strictness. Try moving the slider to the right."
                                               : "No unknown faces at this strictness.";
-    tr.appendChild(td); rows.push(tr);
+    cards.push(li);
   }
-  el.rows.replaceChildren(...rows);
+  el.rows.replaceChildren(...cards);
   state.animateRows = false;                   // only the first build fades in, not slider moves
   refreshHighlight();
 }
