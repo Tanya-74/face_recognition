@@ -104,9 +104,12 @@ evaluation script (`experiments/evaluate.py`) can be run on another wrapper.
 
 **Model files are not in git.**
 `arcface_resnet.onnx` is 174 MB and GitHub refuses files over 100 MB (the second file is 17 MB). So the repo holds
-code only, and the models come from `scripts/download_models.py` or, as a second way, from a GitHub Release page where
-the owner uploads the two files (the README lists their SHA-256 hashes). The cost: setup needs one extra step and
-internet once, and **the Release does not exist until the owner creates it**. Git LFS was not used.
+code only. `run_app.bat` downloads the two files into `models/` the first time they are missing (or you run
+`scripts/download_models.py` yourself), and the README lists their SHA-256 hashes so files copied by hand can be checked.
+The cost: the first start needs internet once, and it depends on the UniFace project's download location still being
+available. For a computer with no internet the files can be copied in by hand. We chose this over committing the files
+(split into pieces under 100 MB) because that would add about 190 MB to the repository for good: git history cannot be
+shrunk later without rewriting it. Git LFS was not used because GitHub's ZIP download leaves LFS files out.
 
 **The threshold is applied in the browser, not on the server.**
 The server returns the nearest person and the distance for every face and never decides "Known or Unknown".

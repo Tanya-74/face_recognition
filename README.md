@@ -35,34 +35,30 @@ If PowerShell says scripts are disabled, skip the `activate` line and write
 
 ### 4. Get the two model files (about 190 MB)
 The models are not stored in git: `arcface_resnet.onnx` is 174 MB, and GitHub rejects single files over 100 MB.
-Use **one** of these two ways. Both end with the two files inside the `models\` folder.
+They go into the `models\` folder. You do not have to do anything extra:
+**`run_app.bat` downloads them automatically the first time** if they are missing (internet needed this one time).
 
-**Way A: download script** (easiest)
+To get them before the first start, or if you start the app by hand, run:
 ```powershell
 python scripts\download_models.py
 ```
 You should see two lines starting with `OK`. The script checks each file with a SHA-256 hash.
 
-**Way B: from the GitHub Release** (no script, e.g. if the script is blocked)
-1. Open the project's **Releases** page: <https://github.com/Tanya-74/face_recognition/releases>
-2. Download the two files `scrfd_10g.onnx` (17 MB) and `arcface_resnet.onnx` (174 MB) from the newest release.
-3. Put both in the `models\` folder of the project (next to `.gitkeep`).
-4. Optional check in PowerShell: `Get-FileHash models\*.onnx -Algorithm SHA256`. The hashes must be:
+**A computer with no internet at all:** copy the two files `scrfd_10g.onnx` and `arcface_resnet.onnx` from another
+computer (where the step above worked) into the `models\` folder, for example with a USB stick. Optional check in
+PowerShell: `Get-FileHash models\*.onnx -Algorithm SHA256`. The hashes must be:
 
-   | File | SHA-256 |
-   |---|---|
-   | `scrfd_10g.onnx` | `5838f7fe053675b1c7a08b633df49e7af5495cee0493c7dcf6697200b85b5b91` |
-   | `arcface_resnet.onnx` | `4c06341c33c2ca1f86781dab0e829f88ad5b64be9fba56e56bc9ebdefc619e43` |
+| File | SHA-256 |
+|---|---|
+| `scrfd_10g.onnx` | `5838f7fe053675b1c7a08b633df49e7af5495cee0493c7dcf6697200b85b5b91` |
+| `arcface_resnet.onnx` | `4c06341c33c2ca1f86781dab0e829f88ad5b64be9fba56e56bc9ebdefc619e43` |
 
-> For the repository owner: a Release has to be created once by hand (GitHub, Releases, Draft a new release,
-> attach the two files from your `models\` folder). It is not created automatically.
-> To set up a computer that has no internet at all, copy the two `.onnx` files over by USB stick into `models\`.
-> (The Python packages in step 3 still need internet once.)
+(The Python packages in step 3 also need internet once.)
 
 ## Run
 
-**Easy way:** double-click **`run_app.bat`**. It activates the environment, starts the server and opens your
-browser at <http://127.0.0.1:8000>. Keep the black window open while you use the app; close it to stop the app.
+**Easy way:** double-click **`run_app.bat`**. It activates the environment, gets the models if they are missing,
+starts the server and opens your browser at <http://127.0.0.1:8000>. Keep the black window open while you use the app; close it to stop the app.
 
 **By hand** (in PowerShell, in the project folder):
 ```powershell
@@ -137,8 +133,8 @@ other computers on your network cannot reach it.
 |---|---|
 | `py` is not recognised | Python 3.11 is missing or not on PATH. Repeat step 1 and reopen PowerShell. |
 | PowerShell: "running scripts is disabled" | Do not use `activate`. Write `.venv\Scripts\python.exe` instead of `python`. (`run_app.bat` is not affected.) |
-| Red note "Face models not found" at the top, or the page says "Model files missing" | The `.onnx` files are not in `models\`. Repeat step 4 (way A or B). Both files must be there. |
-| `download_models.py` says "Could not get ..." | No internet or a blocked connection. Fix the connection, or use way B. |
+| Red note "Face models not found" at the top, or the page says "Model files missing" | The `.onnx` files are not in `models\`. Double-click `run_app.bat` (it downloads them) or repeat step 4. Both files must be there. |
+| `download_models.py` says "Could not get ..." | No internet or a blocked connection. Fix the connection and run it again, or copy the two files by hand (see step 4). |
 | `pip install` fails | Check that `py -3.11 --version` works and you are online. Run the command again. |
 | The page does not open / "Cannot reach the app" | The black window must stay open. If it shows an error, read it. Port 8000 may be taken: start by hand with `--port 8001` and open <http://127.0.0.1:8001>. |
 | "Your session expired" | The app was restarted. Choose the folder again and press Run. |
