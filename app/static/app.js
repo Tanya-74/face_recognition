@@ -91,7 +91,14 @@ function makeCrops() {
 function folderKey() {
   return state.folderFiles.map((f) => `${f.name}|${f.size}|${f.lastModified}`).join("\n");
 }
+function markDone(id, number, done) {
+  const card = $(id);
+  card.classList.toggle("done", done);
+  card.querySelector(".step-no").textContent = done ? "✓" : number;
+}
 function updateRunButton() {
+  markDone("card-1", "1", state.folderFiles.length > 0);   // green tick on finished steps
+  markDone("card-2", "2", !!state.groupFile);
   el.run.disabled = !(state.ready && state.folderFiles.length && state.groupFile);
 }
 function setProgress(fraction, text, busy = false) {
