@@ -104,6 +104,8 @@ def main(src, dst, title):
                         flush_tools(ts)
                         events.append((ts, "you", c))
                 continue
+            if o.get("isMeta") or (o.get("origin") or {}).get("kind", "human") != "human":
+                continue                 # notices from the tool itself, not something the user typed
             text = clean_user_text("\n".join(b.get("text", "") for b in bs if b.get("type") == "text"))
             if text and text != last_user:
                 flush_tools(ts)

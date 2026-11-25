@@ -1,7 +1,7 @@
-# Chat 2 of 3: library research, the app, the UI, the docs (23-24 Nov 2026)
+# Chat 2 of 3: library research, the app, the UI, the docs, naming unknown faces (23-25 Nov 2026)
 
 Exported from a Claude Code session (VS Code extension). See `README.md` in this folder for what is kept, shortened and left out.
-Messages: 23 from the user, 134 from Claude. Times are UTC.
+Messages: 27 from the user, 162 from Claude. Times are UTC.
 
 ## [2026-11-23 20:12 UTC] You
 
@@ -669,10 +669,6 @@ Everything passes except one stray 404, which is almost certainly the browser as
 
 </details>
 
-## [2026-11-23 22:27 UTC] You
-
-> *(screenshot attached)*
-
 ## [2026-11-23 22:27 UTC] Claude
 
 The page looks clean and readable. Two things to check: the folder notes count says 3 when I expected 1, and the mobile layout. I'll look at the notes through the API.
@@ -1012,20 +1008,11 @@ Baseline is green: API 22/22, browser 21/21. (My docs say 23 API checks, so I'll
 
 Now I'll add checks for the cards to the browser test, then run both tests.
 
-<details><summary>3 tool call(s)</summary>
+<details><summary>12 tool call(s)</summary>
 
 - Edit `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\ui_test.py`
 - Bash: cd "c:/Dev/TASK A" && S="C:/Users/<user>/AppData/Local/Temp/claude/0658ebd1c091dd6b/60f50ca7-18f1-4793-80dc-a0871cc49870/scratchpad" && PYTHONUTF8=1 .v
 - Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\ui_3_results.png`
-
-</details>
-
-## [2026-11-24 10:37 UTC] You
-
-> *(screenshot attached)*
-
-<details><summary>9 tool call(s)</summary>
-
 - Bash: cd "c:/Dev/TASK A" && git status --short && git add app/static && git commit -q -m "Add summary cards (faces, known, unknown) to the result" && git pu
 - Bash: cd "c:/Dev/TASK A" && python - <<'EOF'
 - Edit `c:\Dev\TASK A\app\static\style.css`
@@ -1348,20 +1335,11 @@ All 124 browser checks and 22 API checks pass on the first run. Passing numbers 
 
 Those screenshots were taken before the label fix, so I'll rerun the tests and then check the drawer and phone views.
 
-<details><summary>3 tool call(s)</summary>
+<details><summary>4 tool call(s)</summary>
 
 - Bash: cd "c:/Dev/TASK A" && S="C:/Users/<user>/AppData/Local/Temp/claude/0658ebd1c091dd6b/60f50ca7-18f1-4793-80dc-a0871cc49870/scratchpad" && PYTHONUTF8=1 .v
 - Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\ui_2_gallery.png`
 - Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\ui_4_mobile.png`
-
-</details>
-
-## [2026-11-24 11:49 UTC] You
-
-> *(screenshot attached)*
-
-<details><summary>1 tool call(s)</summary>
-
 - Bash: cd "c:/Dev/TASK A" && sed -i 's#    page.screenshot(path=S + r"\\ui_2_gallery.png")#    time.sleep(0.5); page.screenshot(path=S + r"\\ui_2_gallery.png
 
 </details>
@@ -2120,7 +2098,7 @@ Now the UI moments: your one-screen layout request, the repeated-text fix, and t
 
 The leak scan flagged a few lines. I'll look at exactly what matched, since it could just be the redaction code itself mentioning "@gmail".
 
-<details><summary>6 tool call(s)</summary>
+<details><summary>8 tool call(s)</summary>
 
 - Bash: cd "c:/Dev/TASK A" && rm -rf chat_history/__pycache__; grep -n -i "[redacted]\|@gmail" chat_history/02_2026-11-23_to_24_research-app-and-ui.md chat_his
 - Edit `C:\Dev\TASK A\chat_history\export_chat.py`
@@ -2128,6 +2106,688 @@ The leak scan flagged a few lines. I'll look at exactly what matched, since it c
 - Edit `C:\Dev\TASK A\chat_history\export_chat.py`
 - Edit `C:\Dev\TASK A\chat_history\export_chat.py`
 - Bash: cd "c:/Dev/TASK A/chat_history" && export CHAT_REDACT=[redacted] && python export_chat.py "claude_code/5cc35c47-cb5b-4b4e-b5c7-98a19bc354f3.jsonl" "01_
+- Bash: cd "c:/Dev/TASK A" && echo "--- HEAD tracked files containing the email (expect only the file I just redacted, in git's committed form):"; git grep -l
+- Bash: cd "c:/Dev/TASK A" && git status --short && echo "--- safety: staged files must not include models, venv, keys:" && git add chat_history && git diff -
+
+</details>
+
+## [2026-11-24 13:56 UTC] Claude
+
+`AI_COLLAB.md` is written and the chat history is in the repo. Both are pushed to `main` as two commits: "Add readable chat history exports, an export script, and redact the raw chat 1 file", then "Write AI_COLLAB.md: 10 decisions, 3 chat excerpts, pointers to the chat history". Neither commit carries a trailer.
+
+## Your email is still in one old commit
+Your email address is in one older commit (`da6e8da`, "Backup Claude Code chat history"). The file I redacted is clean now, but git keeps old versions. I can't fix that without rewriting history and force-pushing, and you told me never to do that.
+
+Your options:
+- **Accept it.** It's one email address in an old commit.
+- **Authorize a history rewrite before you make the repo public.** I'd remove or redact that one file from history and force-push. You'd have to say so explicitly. It would change the commit ids, and you must do it before reviewers download the repo.
+
+## AI_COLLAB.md
+It has 10 decisions, each with what I suggested, what you decided, why, and the evidence. It also has 3 chat excerpts and a short "honest notes" section. The decisions are:
+1. Python 3.11 for all four libraries. You overrode my recommended option.
+2. Stopping the slow full test and switching to a time-boxed smoke test.
+3. Not fighting `face_recognition` when it wouldn't install.
+4. Picking UniFace, plus your own check of the odd 11th detection.
+5. You own the 0.62 threshold. I only showed the evidence.
+6. The browser applies the threshold, so the slider is instant.
+7. Models kept out of git, with an automatic download on first start.
+8. The dashboard UI: one screen, dark, and your approval before the merge.
+9. The git rules.
+10. Stating the weak spots honestly.
+
+I checked every quoted line (35) and quoted phrase (27) against the chat exports by script, and all of them match word for word.
+
+**Please read it before you submit.** I have a few reminders:
+- The doc says up front that I drafted it from the chat history at your request. You'd said you would write it yourself, so I kept that honest.
+- Where your reasons aren't written in the chat (for example why you chose 0.62), I said so rather than inventing them. Add your own reasons where you have them, since the interview will ask about these decisions.
+- Five older commits still carry the "Co-Authored-By" line. They predate your instruction, and the doc says so.
+
+## Chat history
+- **New exports:** Three readable Markdown files cover every message you typed, every reply I wrote, and the questions with your answers. Tool output, hidden reasoning and screenshots are left out, and a README in `chat_history/` explains this. The first file starts at your very first prompt, on 22 Nov.
+- **Redactions:** I redacted your email and the user name in paths. The raw chat-1 file already in the repo got the same treatment. The 31 MB raw record of this long chat isn't committed, and you can show it at the demo.
+- **Not included:** The SmartCCTV and NURAP chats on your PC are different projects, so I left them out. If you used any other AI tool for this project (for example Gemini for planning or practice data), add those links yourself, because I can't see them.
+- **Snapshot:** The export was taken while I was finishing, so the last few exchanges about these files themselves come after it.
+
+## Still left
+The repo must be made public by you (it still looked private), and I'd run the fresh-clone test once it is. A test on real group photos is optional but valuable. Want me to do the fresh-clone test next?
+
+## [2026-11-24 14:05 UTC] You
+
+> the project is done? 
+> give the steps after sharing the screen to the interview... to how they till access or test it...
+
+## [2026-11-24 14:06 UTC] Claude
+
+**Yes, the app and the four required docs are done and pushed, but two things are still open before you submit.**
+
+1. **Make the repo public.** It still looked private from outside. You do this on GitHub, and it must be done before the deadline.
+2. **Read AI_COLLAB.md once and add your own reasons.** The interview will ask about those decisions.
+
+Two things I'd also do, though they're optional:
+- A fresh-clone test: clone into an empty folder, install, and double-click `run_app.bat`. It proves a reviewer's first start works. I can run it once the repo is public.
+- A run on a couple of real group photos. I've only tested clean collage faces.
+
+(The `_test_models.bat` tab in your IDE is stale. That temporary file was already deleted, so you can close it.)
+
+## The demo: step by step
+
+**Before the interview, the day before or the morning of:**
+1. Run `run_app.bat` once with internet on. Check that the models are in `models\` (two `.onnx` files) and that the page opens.
+2. Do a warm-up run with any folder and photo. The first start after a reboot can be slow while Windows scans files.
+3. Close other heavy programs. Keep the black `run_app.bat` window available, and have `README.md` and `ARCHITECTURE.md` ready to open.
+4. Have a few practice photos ready as a fallback, in case their files are slow to copy.
+
+**Live, after you share your screen:**
+1. **Start the app.** Double-click `run_app.bat`. The browser opens at `127.0.0.1:8000`. If a "Starting up..." note shows at the top, wait a few seconds until it disappears. That means the models are loaded.
+2. **Say it is fully offline.** Optional proof: turn Wi-Fi off (airplane mode) and keep demoing. Nothing changes, because the page and models are all local.
+3. **Their folder.** Drag their folder of 50 named photos onto box 1, or click it. The top bar shows "✓ 50 photos found". The "Known people" button opens a gallery to check you picked the right folder.
+4. **Their group photo.** Drop it on box 2. Then press **Run**.
+5. **While it runs.** A progress bar with a percentage reads the 50 photos once. Expect roughly 30 to 90 seconds on a normal CPU. The group photo itself takes a couple of seconds.
+6. **Read the result.** Names appear on the photo, and unknown people are labelled "Unknown". On the right are the counts (faces, known, unknown) and one card per face with its distance. Hover a face to highlight its card, and click to select it. The chips All, Known and Unknown filter the list.
+7. **Show the slider if it matters.** Real photos are harder, so if a stranger gets a name, move **Strictness** lower. If a known person shows "Unknown", move it higher. It updates instantly with no re-processing.
+8. **Show the downloads.** "Download PNG" saves the annotated photo, and "Download CSV" saves the list.
+9. **To try another photo.** Drop it on the picture and press Run again. The folder isn't re-read, so it is fast. "Change folder" and "Change photo" are in the top bar.
+
+**If something goes wrong:**
+
+| Problem | What to do |
+|---|---|
+| "Face models not found" (red) | Double-click `run_app.bat`; it downloads them, which needs internet once. Or copy the two files from another copy of your `models\` folder. |
+| Page won't open | Keep the black window open. If port 8000 is busy, start by hand with `--port 8001`, as the README says. |
+| A known person shows "Unknown" | Raise the slider a little, and say that real photos need a tuned threshold. |
+| A stranger gets a name | Lower the slider. |
+| A face is missed | Small or turned faces are a known limit, and the docs say so openly. |
+
+## How the company reviews it
+- **Before the interview:** They open your public GitHub repo, read the README, ARCHITECTURE.md, RESEARCH.md and AI_COLLAB.md, and look at the commit history.
+- **At the interview:** They don't deploy anything. You run it on your own laptop and share your screen, as the brief says, with their data.
+- **If they want to run it themselves:** They clone the repo and follow the README: install Python 3.11, create the venv, run `pip install`, then double-click `run_app.bat`. It downloads the models on the first start, which needs internet once.
+
+## What to be ready to explain
+- Why UniFace, and that it was chosen on install, size and speed, not on proven accuracy.
+- Why the threshold is a slider, and that 0.62 is a starting point to tune.
+- What the weak spots are: collage test data, small faces, and one reference photo per person.
+
+Want me to run the fresh-clone test now, or write a one-page cheat sheet for the demo?
+
+## [2026-11-24 14:50 UTC] You
+
+> i am thinking to deploy as well.....
+
+## [2026-11-24 14:50 UTC] Claude
+
+**I'd advise against deploying it online.** The brief rules it out in three places:
+- "It must work fully offline on your own laptop. No internet at runtime."
+- "No online APIs or hosted services."
+- "no cloud hosting"
+
+If you put it on a public website, a reviewer could read that as breaking the rules, and you'd gain nothing. The live demo is on your laptop with their data. Your app is also built for a local machine: the face models run on your CPU, and the server only listens on `127.0.0.1`. Putting it online would need a real server and some security work, and it would send people's face photos over the internet, which is a privacy problem for an app like this.
+
+GitHub can't host it either. GitHub Pages only serves static files, and your app needs a Python server and the models.
+
+## Things that are allowed and help a reviewer
+These make it easier to see and run it without hosting anything online:
+
+1. **Screenshots or a short screen recording in the README.** About 60 to 90 seconds showing a folder, a group photo and the result. A reviewer who can't run it right away can still see it work. This is the most useful one, and it's cheap.
+2. **A one-click setup.** Today the steps are: install Python, create the venv, run `pip install`, then double-click `run_app.bat`. I could add a `setup.bat` that does the venv and install in one go. That's a small change.
+3. **A fresh-clone test.** I'd confirm that a clean copy of the repo really works from the README. I haven't run it yet.
+
+I would not package it as an `.exe` unless you want to. It's slower to build, the files would be large, and it adds risk with antivirus and the models for little benefit.
+
+Which would you like me to do: the setup script, the fresh-clone test, or a README section with screenshots? For the screenshots I can generate them from the real app with your test data, so there's nothing to fake.
+
+## [2026-11-25 04:55 UTC] You
+
+> i am not able to connect to the server....
+
+## [2026-11-24 15:45 UTC] You
+
+> *(automatic summary written by Claude Code when the conversation ran out of room; left out)*
+
+## [2026-11-25 04:55 UTC] Claude
+
+I'll check whether the app's server is running on your laptop.
+
+<details><summary>4 tool call(s)</summary>
+
+- PowerShell: Check whether the app server is running and files are present
+- Read `c:\Dev\TASK A\run_app.bat`
+- PowerShell: See what answers on port 8000
+- Grep: 8000|api/status|@app\.(get|post)
+
+</details>
+
+## [2026-11-25 04:55 UTC] Claude
+
+Found the cause: another project of yours, **SmartCCTV_Project**, is using port 8000. I'll leave it running and start the face app on port 8001.
+
+<details><summary>3 tool call(s)</summary>
+
+- PowerShell: Start the face app on port 8001
+- Bash: Wait for the face app and check its status
+- Bash: Wait until the face models finish loading
+
+</details>
+
+## [2026-11-25 04:56 UTC] Claude
+
+**Open [http://127.0.0.1:8001](http://127.0.0.1:8001).** The face app is running there now, and its status check says the models are loaded and ready.
+
+## What was wrong
+The app normally uses port **8000**, but your **SmartCCTV_Project** server is already using it (started today at 10:23). Only one program can use a port, so `http://127.0.0.1:8000` shows the "Smart CCTV Dashboard", and `run_app.bat` can't start the face app there.
+
+I didn't stop or change your CCTV project.
+
+## To run it the normal way
+1. Stop the CCTV server: press **Ctrl+C** in the terminal where it's running, or close that window.
+2. Double-click `run_app.bat`.
+3. If the browser says it can't connect, wait a few seconds and refresh. It opens after 4 seconds, which can be too soon on a slow start.
+
+The server I started on 8001 belongs to this Claude session, so it may stop when the session closes. Tell me when you want it stopped.
+
+## Fix this before the demo
+A busy port or an early browser tab would look bad on a shared screen. I can update `run_app.bat` so it:
+- uses the next free port if 8000 is taken
+- opens the browser only once the server is answering
+
+It's a small change, and I'd test it with port 8000 both busy and free. Shall I do it?
+
+## [2026-11-25 06:53 UTC] You
+
+> for optimization also give me the script
+
+## [2026-11-25 06:53 UTC] Claude
+
+I'm taking this as a yes to the launcher update, so I'll write the script, test it and show it to you.
+
+<details><summary>11 tool call(s)</summary>
+
+- Grep: 8000|run_app|after 4|4 seconds
+- Read `c:\Dev\TASK A\app\main.py`
+- Write `c:\Dev\TASK A\scripts\launch.py`
+- Edit `c:\Dev\TASK A\run_app.bat`
+- Edit `c:\Dev\TASK A\README.md`
+- Read `c:\Dev\TASK A\README.md`
+- Edit `c:\Dev\TASK A\README.md`
+- Edit `c:\Dev\TASK A\README.md`
+- Edit `c:\Dev\TASK A\README.md`
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\test_launch.py`
+- Bash: Test the launcher with ports free, blocked and all taken
+
+</details>
+
+## [2026-11-25 06:55 UTC] Claude
+
+The normal start passed. The other two failures look like a timing fault in my test: it set up the next case before the previous server had fully closed. I'll make the test wait for that.
+
+<details><summary>2 tool call(s)</summary>
+
+- Edit `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\test_launch.py`
+- Bash: Rerun the launcher test
+
+</details>
+
+## [2026-11-25 06:56 UTC] Claude
+
+All three cases pass. Last check: the real `run_app.bat`, with your CCTV server still holding port 8000.
+
+<details><summary>2 tool call(s)</summary>
+
+- Bash: Run the real start script and check for leftovers
+- Bash: Commit the launcher change and push to main
+
+</details>
+
+## [2026-11-25 06:57 UTC] Claude
+
+I added the start script, tested it, and pushed it to `main` (commit `ed02e35`). To use it, **double-click `run_app.bat`** as before. You no longer need to stop your CCTV project first.
+
+## What it does
+- Tries port 8000, and takes the next free one up to 8019 if it's busy
+- Opens the browser only once the server is answering, instead of after a fixed 4 seconds
+- Shows a plain message if all those ports are taken
+
+## The script
+[scripts/launch.py](scripts/launch.py):
+
+```python
+"""Start the app on a free port and open the browser once the server is answering.
+
+Used by run_app.bat. By hand, from the project folder:  python scripts/launch.py
+Port 8000 is tried first. If another program is using it, the next free port is taken.
+"""
+import os
+import socket
+import sys
+import threading
+import time
+import webbrowser
+
+import uvicorn
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+HOST = "127.0.0.1"          # this laptop only
+PORTS = range(8000, 8020)
+
+
+def open_port():
+    """Return (socket, port) for the first free port. The socket stays open and is handed to the server."""
+    for port in PORTS:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+            probe.settimeout(0.3)
+            if probe.connect_ex((HOST, port)) == 0:      # something already answers here
+                continue
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            sock.bind((HOST, port))
+        except OSError:                                  # taken, or reserved by Windows
+            sock.close()
+            continue
+        return sock, port
+    return None, None
+
+
+def open_browser_when_ready(server, url):
+    while not server.started:
+        if server.should_exit:
+            return
+        time.sleep(0.2)
+    print(f"\nThe app is running at {url}\nKeep this window open while you use it. Close it to stop the app.\n",
+          flush=True)
+    webbrowser.open(url)
+
+
+def main():
+    sys.path.insert(0, ROOT)
+    os.chdir(ROOT)
+    sock, port = open_port()
+    if sock is None:
+        print(f"Ports {PORTS[0]} to {PORTS[-1]} are all in use. Close other programs and try again.")
+        return 1
+    if port != PORTS[0]:
+        print(f"Port {PORTS[0]} is used by another program, so the app will use port {port}.")
+    print("Starting...", flush=True)
+    server = uvicorn.Server(uvicorn.Config("app.main:app", host=HOST, port=port))
+    threading.Thread(target=open_browser_when_ready, args=(server, f"http://{HOST}:{port}"), daemon=True).start()
+    try:
+        server.run(sockets=[sock])
+    except KeyboardInterrupt:                            # Ctrl+C
+        pass
+    return 0 if server.started else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+```
+
+In [run_app.bat](run_app.bat), the old timed browser opening and server command are now one line, `python scripts\launch.py`. I also updated the README to match.
+
+## Test results
+| Case | Result |
+|---|---|
+| Port 8000 busy | Used the next free port, and the server answered |
+| The next free port blocked too | Moved on to the one after |
+| Ports 8000 to 8019 all unavailable | Showed the message and opened no browser |
+| Real `run_app.bat` with CCTV on 8000 | Started on 8002 and the models loaded |
+
+The tests recorded or suppressed the browser opening, so **double-click it once yourself** to see the tab appear.
+
+- **Port 8001:** the temporary server I started earlier is still running there, so a new start will pick 8002. Tell me to stop it if you don't need it.
+- **"Optimization":** this improves startup, not recognition speed. If you meant making Run faster, say so and I'll measure where the time goes first.
+
+## [2026-11-25 13:57 UTC] You
+
+> # Task: let a person name an "Unknown" face, and recognise them in later scans
+>
+> ## Goal
+> After a scan, a face is shown as **Unknown**. The person says "I am Ryan Diesel" and types that name on the face
+> card. The app saves that face's embedding under the name. Every later scan, including after an app restart,
+> compares faces against the folder photos **and** these saved embeddings, so the same person is now recognised.
+>
+> This feedback loop adds reference data. **Do not retrain or fine-tune** the SCRFD or ArcFace models.
+>
+> ## How the app works today (read these files before changing them)
+> - `app/engine.py`: `Session` keeps one name and embedding per folder photo, in memory. `nearest()` returns the
+>   closest one. `analyse_group()` computes an embedding for every face, then discards it.
+> - `app/main.py`: FastAPI routes under `/api/session/...`. `Problem` becomes a 400 with a readable message.
+> - `app/static/app.js`: decides Known/Unknown in the browser (`distance <= threshold`). `buildRows()` draws the
+>   face cards. The server does not know the threshold.
+> - `app/face_backend.py`: `get_faces()` and `distance()`. It should not need changes.
+>
+> ## Required behaviour
+>
+> ### Server
+> 1. Keep the face embeddings of the session's **latest** group scan in memory, with a random `analysis_id`
+>    that is returned in the scan response. Never send embeddings to the browser.
+> 2. Add `POST /api/session/{sid}/label` with `analysis_id`, `face_id` and `name`. It saves that face's embedding
+>    under that name. Reject, with a clear `Problem` message: an expired session, an old `analysis_id`
+>    (so a name cannot land on the wrong face), an unknown `face_id`, and a bad name.
+> 3. A good name is trimmed, 1 to 80 characters, has no control characters and is not "Unknown" in any casing.
+>    If it matches an existing folder or saved name ignoring case, use the existing spelling.
+> 4. Store saved faces in `data/learned_faces.json` (path can be overridden with the `FACE_LEARNED_FILE`
+>    environment variable). Each entry has: id, name, embedding, recognition model name, date added.
+>    - Write to a temporary file, then `os.replace`, under a lock.
+>    - If the file is corrupt or unreadable, report it and **never overwrite it**.
+>    - Ignore entries made with a different recognition model: their embeddings are not comparable.
+>    - Labelling the same face of the same scan again replaces that entry (this is how a typo is fixed).
+>      It must not add a second one.
+> 5. `nearest()` searches folder embeddings and saved embeddings together, in every session. Keep every sample
+>    separately (no averaging). The rule that a folder must be loaded before a scan stays as it is.
+> 6. Undo: add an endpoint to list saved names with their sample counts, and one to delete all samples of a name.
+>    A wrong label must be removable without editing files by hand.
+>
+> ### Web page
+> 1. On every **Unknown** face card add a "This is..." button that opens a small name input with Save and Cancel.
+>    Before saving, show: "This face will be remembered on this computer as <name>."
+> 2. Typing in the input or pressing its buttons must not trigger the card's own click and Enter/Space handlers.
+> 3. After saving, run the group scan again without re-reading the folder, so every label, box, count, CSV and
+>    PNG is up to date. The strictness slider keeps its value.
+> 4. Add a "Saved people" drawer, like the existing drawers, listing saved names with a Delete button (confirm first).
+> 5. A saved person may have no folder photo. The card must still work without one.
+> 6. Keep it plain HTML/CSS/JS: keyboard accessible, no outside libraries, names inserted with `textContent` only.
+>
+> ## Rules
+> - Fully offline, no new dependencies.
+> - Save an embedding **only** when someone explicitly labels a face. Never learn automatically from matches.
+> - Save no photos or face crops, only the data listed above.
+> - Add `data/` to `.gitignore`.
+> - Out of scope: relabelling faces already shown as Known, accounts or login, a database.
+> - Update `README.md` and `ARCHITECTURE.md`. They currently say nothing about people is written to disk, which
+>   will no longer be true. Say where the file is and how to delete it.
+>
+> ## Done when
+> Extend `tests/test_app.py`, pointing `FACE_LEARNED_FILE` at a temporary file so real data is never touched and
+> old results cannot affect the existing checks. All old checks still pass, and new checks show that:
+> 1. An unknown face, once labelled, has that name and a distance near 0 when the same photo is scanned again.
+> 2. It is still recognised in a new session after a server restart.
+> 3. A **different** photo of the same person is matched to that name. Report the distance, and report it
+>    honestly if it is above the 0.62 default.
+> 4. Other unknown faces do not receive the new name at 0.62.
+> 5. A stale `analysis_id`, a bad `face_id`, and empty, too long and "unknown" names are rejected.
+> 6. Relabelling replaces the entry, and deleting a name makes the face Unknown again.
+> 7. A corrupt store file produces an error and is left unchanged.
+>
+> Also try the flow once in a real browser. State anything you could not test.
+
+## [2026-11-25 13:57 UTC] Claude
+
+I'll build this feature to your spec. I'll start by reading the current code and tests, and checking that the repo is clean.
+
+<details><summary>12 tool call(s)</summary>
+
+- Bash: Check repo state, file sizes, ports and test scripts
+- Read `c:\Dev\TASK A\app\engine.py`
+- Read `c:\Dev\TASK A\app\main.py`
+- Read `c:\Dev\TASK A\app\face_backend.py`
+- Read `c:\Dev\TASK A\app\static\app.js`
+- Read `c:\Dev\TASK A\app\static\index.html`
+- Read `c:\Dev\TASK A\tests\test_app.py`
+- Read `c:\Dev\TASK A\app\static\style.css`
+- Read `c:\Dev\TASK A\ARCHITECTURE.md`
+- Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\run_all.py`
+- Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\ui_test.py`
+- Bash: Inspect test data and doc claims about disk storage
+
+</details>
+
+## [2026-11-25 13:59 UTC] Claude
+
+Plan: add the server side first, then the tests, the web page and the docs, committing and pushing each step as you asked earlier. Some things to check before writing code:
+
+<details><summary>1 tool call(s)</summary>
+
+- Bash: Check ignore rules, diagram source and the diagram tool
+
+</details>
+
+## [2026-11-25 13:59 UTC] Claude
+
+The diagram also says "Not stored on disk", so it needs updating along with the docs. Starting with the server: a new small module for the saved-faces file.
+
+<details><summary>5 tool call(s)</summary>
+
+- Write `c:\Dev\TASK A\app\learned.py`
+- Bash: Apply the server changes and run the existing API test
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\sub.py`
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_server.py`
+- Bash: Apply the server changes and run the existing API test
+
+</details>
+
+## [2026-11-25 14:02 UTC] Claude
+
+The 22 existing checks still pass with the server changes, so I'll commit this step.
+
+<details><summary>1 tool call(s)</summary>
+
+- Bash: Commit and push the server changes
+
+</details>
+
+## [2026-11-25 14:02 UTC] Claude
+
+Now the new checks in the API test.
+
+<details><summary>5 tool call(s)</summary>
+
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_tests.py`
+- Bash: Add the new checks and run the whole API test
+- Read `c:\Dev\TASK A\experiments\prepare_lfw.py`
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_tests2.py`
+- Bash: Fix the two test mistakes and rerun the whole API test
+
+</details>
+
+## [2026-11-25 14:10 UTC] Claude
+
+All checks pass. The real different-photo distances are 0.17 to 0.44, all within 0.62. Committing the tests.
+
+<details><summary>1 tool call(s)</summary>
+
+- Bash: Commit and push the new tests
+
+</details>
+
+## [2026-11-25 14:11 UTC] Claude
+
+Now the web page: the "This is..." form on Unknown cards, the re-check after saving, and the "Saved people" drawer.
+
+<details><summary>2 tool call(s)</summary>
+
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_page.py`
+- Bash: Apply the page changes
+
+</details>
+
+## [2026-11-25 14:11 UTC] Claude
+
+The page changes are in. Next is a real headless-browser run of the whole flow (Edge), with saved faces going to a temporary file.
+
+<details><summary>2 tool call(s)</summary>
+
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\ui_learn_test.py`
+- Bash: Run the browser test of the naming flow
+
+</details>
+
+## [2026-11-25 14:13 UTC] Claude
+
+Everything works except one layout problem: with the new button, the top bar wraps onto a second line at 1366 px. I'll measure what takes the space.
+
+<details><summary>4 tool call(s)</summary>
+
+- Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_2_saved_1366x768.png`
+- Edit `c:\Dev\TASK A\app\static\style.css`
+- Edit `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\run_all.py`
+- Bash: Rerun the naming browser test, then the old browser and API tests
+
+</details>
+
+## [2026-11-25 14:18 UTC] Claude
+
+All three runs pass: 66 new browser checks, 65 API checks and the 163 earlier browser checks. I'll look at the screenshots too, since tests don't judge appearance.
+
+<details><summary>5 tool call(s)</summary>
+
+- Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_1_form.png`
+- Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_3_drawer.png`
+- Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_5_damaged.png`
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\probe_scroll.py`
+- Bash: Check the name form is fully visible in the list
+
+</details>
+
+## [2026-11-25 14:19 UTC] Claude
+
+Opening the form is fine, so the screenshot only caught it mid-scroll. After an error, though, the buttons can end up out of view. That's a real bug, and I'm fixing it.
+
+<details><summary>5 tool call(s)</summary>
+
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_scroll_fix.py`
+- Bash: Fix the scroll after an error and rerun the checks
+- Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_6_form_650.png`
+- Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_4_phone.png`
+- Bash: Run the earlier browser and API tests again
+
+</details>
+
+## [2026-11-25 14:23 UTC] Claude
+
+The form now shows fully, including with an error, and the earlier tests still pass (65 API, 163 browser). Committing the page.
+
+<details><summary>9 tool call(s)</summary>
+
+- Bash: Commit the page changes and locate the diagram tool
+- Grep: archify\.mjs|node_portable|node\.exe|node_dl
+- Grep: "command":"[^"]{0,60}(\\"[^"]{0,120}){0,6}[^"]{0,80}archify\.mjs[^"]{0,160}(\\"[^"]{0,120}){0,6}
+- Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\svg2png2.py`
+- Bash: Find a Node runtime for the diagram tool
+- Bash: Check the diagram tool's commands and earlier usage
+- Read `c:\Dev\TASK A\docs\architecture.png`
+- Read `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\svg2png.py`
+- Bash: Check how the diagram files were produced
+
+</details>
+
+## [2026-11-25 14:23 UTC] Claude
+
+The diagram needs the new saved-faces file. I'll update its source and re-render it with the diagram tool.
+
+<details><summary>9 tool call(s)</summary>
+
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_diagram.py`
+- Bash: Update the diagram source and render it
+- Bash: Export the diagram to SVG and PNG
+- Bash: Export the new diagram image files
+- Read `c:\Dev\TASK A\docs\architecture.png`
+- Read `c:\Dev\TASK A\README.md`
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\learn_docs.py`
+- Bash: Update the docs and time a full API test run
+- Bash: Finish the architecture doc and time the API test
+
+</details>
+
+## [2026-11-25 14:27 UTC] Claude
+
+Updating the docs now. The full API test passed again (65 of 65), and after one last number in the README I'll check the diff, commit and push.
+
+<details><summary>2 tool call(s)</summary>
+
+- Bash: Fill in the test duration and review the doc changes
+- Bash: Fix small doc issues, commit and push, check for leftovers
+
+</details>
+
+## [2026-11-25 14:28 UTC] Claude
+
+You can now name an **Unknown** face, and the app recognises that person in later scans, including after a restart. It's committed and pushed to `main` in four steps (latest `7b135f2`).
+
+**To use it:** on an Unknown card, press **This is...**, type the name and press **Save**. The photo is checked again, and **Saved people** in the top bar lets you delete names.
+
+## Test results
+| Test | Result |
+|---|---|
+| API test, [tests/test_app.py](tests/test_app.py) | 65 of 65 pass (22 old, 43 new) |
+| New browser test of the naming flow | 66 of 66 pass |
+| Earlier browser test | 163 of 163 pass |
+
+| Your "done when" point | What happened |
+|---|---|
+| 1. Same photo again | Correct name, distance 0.000 |
+| 2. After a server restart | Still recognised in a new session |
+| 3. **Different photo** | Eddy Merckx matched at **0.221**, within 0.62 |
+| 4. Other unknown faces | None got the name; the closest was at 0.980 |
+| 5. Bad requests | All rejected, nothing saved |
+| 6. Relabel and delete | One entry after relabelling; Unknown again after deleting |
+| 7. Damaged file | Error shown, file unchanged |
+
+For point 3, I also checked six people, and all matched within the limit, at **0.17 to 0.44**.
+
+My first version of that check showed about 0.007, because the group collages are built from the `test_same` photos, so it was comparing a photo with itself. The numbers above use the `folder` photos, which are different shots.
+
+## Where it behaves differently than you might expect
+- **Fixing a typo:** relabelling replaces the entry through the API, as you specified. On the page, the face shows as Known after saving and relabelling Known faces was out of scope, so you **delete the name and label it again**.
+- **Damaged file:** scans still work using the folder photos and show a warning. Saving, listing and deleting are refused.
+- **`.gitignore`:** I added `/data/` rather than `data/`, which would also have ignored new files in `experiments/data`.
+- **Other models:** their entries are kept in the file but not matched or listed.
+- **Layout:** top-bar buttons are slightly smaller on laptop widths, so the new button fits on one row.
+- **Diagram:** I updated it too, because it said nothing was stored on disk.
+
+## Not tested
+- **By hand:** the browser runs were automated in headless Edge, including the delete confirmation. Please try the flow once yourself.
+- **Real photos:** only the LFW test images were used, so expect larger distances with other lighting, angles or ages.
+- **Other setups:** other browsers, screen readers, hundreds of saved faces, two app windows saving at once, or a crash during a save.
+
+The browser tests are in my temporary folder, not in the repo.
+
+## Before your demo
+- **Clear saved names:** names you save while practising will appear when the company tests. Delete the `data` folder beforehand (it doesn't exist yet).
+- **AI_COLLAB.md and chat history:** neither covers this feature yet. I can add it if you like.
+
+## [2026-11-25 14:52 UTC] You
+
+> add the naming feature to AI_COLLAB.md and chat history
+
+## [2026-11-25 14:52 UTC] Claude
+
+I'll check which session files now exist and how the new messages are recorded, so the export doesn't treat system notices as your messages.
+
+<details><summary>4 tool call(s)</summary>
+
+- Bash: List session files, repo state and chat exports
+- Read `c:\Dev\TASK A\AI_COLLAB.md`
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\probe_session.py`
+- Bash: Inspect user-side records in the session file
+
+</details>
+
+## [2026-11-25 14:53 UTC] Claude
+
+The export script would wrongly record two system notices (a background-task alert and an image-size note) as messages you typed. I'll fix that filter, then re-export and compare with the old file.
+
+<details><summary>3 tool call(s)</summary>
+
+- Edit `c:\Dev\TASK A\chat_history\export_chat.py`
+- Bash: Export the session again and compare with the old export
+- Bash: Review differences and scan for private strings
+
+</details>
+
+## [2026-11-25 14:53 UTC] Claude
+
+Those three "screenshot attached" entries in the old export need checking before I remove them, and so do the three `@gmail` matches.
+
+<details><summary>9 tool call(s)</summary>
+
+- Bash: Check the old screenshot entries and email mentions
+- Bash: Check commit addresses and re-export chat 1 for comparison
+- Bash: Find the exact lines to quote in the new export
+- Write `C:\Users\<user>\AppData\Local\Temp\claude\0658ebd1c091dd6b\60f50ca7-18f1-4793-80dc-a0871cc49870\scratchpad\collab_edit.py`
+- Bash: Update the documents, re-export the chat and verify quotes
+- Bash: Scan the export for private data and stale links
+- Bash: Check the summary markers and README size note
+- Edit `c:\Dev\TASK A\chat_history\README.md`
+- Bash: Re-export, verify quotes, scan and stage
 
 </details>
 

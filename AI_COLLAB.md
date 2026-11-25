@@ -4,11 +4,12 @@ How I worked with the AI (Claude Code in VS Code), how we reached a shared under
 
 **Where the proof is.** The full chat history, from my very first prompt, is in [chat_history/](chat_history/) (start with its
 [README](chat_history/README.md)). Every quote below is copied from those files. Times are UTC.
-Short names used below: **chat 1** is `01_2026-11-22_...md`, **chat 2** is `02_2026-11-23_to_24_...md`.
+Short names used below: **chat 1** is `01_2026-11-22_...md`, **chat 2** is `02_2026-11-23_to_25_...md`.
 
 **One honest note.** I first planned to write this file myself, and I told the AI so (chat 2, 23 Nov 22:42). At the end I asked the AI to draft it
 from the chat records, "whereever i made the meaningful decision" (chat 2, 24 Nov 13:47). So this text was drafted by the AI from the
 real history, with the quotes checked against the files. The decisions are mine; they are all visible in the chat.
+After adding the naming feature I asked for it to be added here too (chat 2, 25 Nov 14:52).
 
 ## How we worked
 
@@ -26,29 +27,22 @@ My first prompt already set this up: "I will do the research myself and tell you
 **Why:** So the comparison is fairer. The same Python for every library means the install times and problems are comparable. (This is the reason given in the option I chose; I did not write my own reason in the chat.)
 **Evidence:** Chat excerpt #1. The result is in RESEARCH.md: every library was tried on Python 3.11.9.
 
-## Decision 2: Stop the slow full test and switch to a time-boxed smoke test
+## Decision 2: Time-box the comparison: smoke tests, and do not fight a library that will not install
 
 **AI suggested / did:** Started the full evaluation with DeepFace first. Its first run hung for 10 minutes ("Nothing has been downloaded after 10 minutes, so something is hanging.")
-because DeepFace prints an emoji that crashes a Windows console; the fix was `PYTHONUTF8=1`.
-**I decided:** "We are short on time, so change the plan." Stop the full DeepFace run, do a quick smoke test of all four (maximum 10 minutes each), get **one** recommendation, and wait for my approval before any full evaluation.
-**Why:** Time. I still wanted the install effort and timings the AI had already collected, so I told it to keep the DeepFace install log and timings: "they are part of my research."
-**Evidence:** Chat excerpt #2 (my message and the AI's table and recommendation); chat 2, 23 Nov 20:39 to 20:54. Result: the smoke-test table in RESEARCH.md.
+because DeepFace prints an emoji that crashes a Windows console; the fix was `PYTHONUTF8=1`. Earlier, for `face_recognition`, it had offered "Try plain pip first (Recommended)": log exactly how it fails, then try a workaround.
+**I decided:** "We are short on time, so change the plan." Stop the full DeepFace run, do a quick smoke test of all four (maximum 10 minutes each), get **one** recommendation, and wait for my approval before any full evaluation. I had accepted plain pip first; I then said that if a library hangs or fails it should log why and move on, and not fight with it.
+**Why:** Time, and the install effort is itself research data. I told it to keep the DeepFace install log and timings: "they are part of my research." The AI did not retry after dlib failed to build (it needs the Visual C++ Build Tools).
+**Evidence:** Chat excerpt #2 (my message, the move-on instruction, and the AI's table and recommendation); chat 2, 23 Nov 20:13 to 20:54. Results in RESEARCH.md: the smoke-test table, and `face_recognition` listed as rejected for this project, with its tests marked as not run and the reason.
 
-## Decision 3: Do not fight with a library that will not install
-
-**AI suggested:** For `face_recognition`: "Try plain pip first (Recommended)", log exactly how it fails, then try a workaround.
-**I decided:** I accepted plain pip first, and then told the AI that if a library hangs or fails it should log why and move on, and not fight with it.
-**Why:** The install effort is itself research data, and time was short. The AI did not retry after dlib failed to build (it needs the Visual C++ Build Tools).
-**Evidence:** The question and my answer are in chat 2 (23 Nov 20:13 to 20:25); the move-on instruction is in chat excerpt #2. Result: RESEARCH.md lists `face_recognition` as rejected for this project, marks its tests as not run, and gives the reason.
-
-## Decision 4: Pick UniFace, and check the weak spots myself
+## Decision 3: Pick UniFace, and check the weak spots myself
 
 **AI suggested:** UniFace: the fastest and cleanest install, smallest footprint, fully offline. It named InsightFace as a close second (same model family) and said DeepFace might still be worth a full evaluation for accuracy.
 **I decided:** "Yes, run the full evaluation (tests A to D with the threshold sweep) on UniFace only", and added a check of my own first: an annotated copy of `group1.jpg` with every detected face numbered, to see which of the 11 detections is not a real face.
 **Why:** The AI's reasons were install effort, size and speed; I approved without changing the pick. I did not write more reasons in the chat. What the chat does show is that I did not accept the one odd number (11 faces in a 10-person photo) without looking at it.
 **Evidence:** Chat excerpt #2. The check showed the 11th face is a real person standing in the background (RESEARCH.md, section 2, test C). RESEARCH.md also says plainly that the pick is based on install effort, size and speed and is not proven on accuracy.
 
-## Decision 5: I own the threshold number; the AI only shows the evidence
+## Decision 4: I own the threshold number; the AI only shows the evidence
 
 **AI suggested:** From the sweep, a flat zone from 0.55 to 0.80 with no mistakes, and the middle of it (about 0.60 to 0.70) as the place with room for error. It also said: "I haven't picked one for you."
 **I decided:** The app's default strictness is **0.62**, set in my build request, with a slider so a user can change it.
@@ -66,7 +60,7 @@ because DeepFace prints an emoji that crashes a Windows console; the fix was `PY
 
 (chat 2: my first prompt 23 Nov 20:12; my evaluation request 21:38; the AI's evaluation report 21:43; my build request with the 0.62 default 22:15.)
 
-## Decision 6: The browser applies the threshold, so the slider is instant
+## Decision 5: The browser applies the threshold, so the slider is instant
 
 **AI suggested:** A design where the server does the heavy work once and returns each face's nearest person and distance, and the browser decides "Known" or "Unknown". This satisfied my requirement.
 **I decided:** I required that the slider change the labels without re-processing, and I accepted this design, listing it in the trade-offs I asked ARCHITECTURE.md to explain ("threshold applied in the browser so the slider is instant, in-memory embedding cache").
@@ -76,14 +70,14 @@ because DeepFace prints an emoji that crashes a Windows console; the fix was `PY
 
 (chat 2, 23 Nov 22:16.) The cost is written down in ARCHITECTURE.md: the rule lives in JavaScript, and the server returns only the single nearest person.
 
-## Decision 7: Keep the model files out of git, and make the first start download them
+## Decision 6: Keep the model files out of git, and make the first start download them
 
 **AI suggested:** Keep both model files out of git (174 MB and 17 MB; GitHub refuses files over 100 MB), use a download script, and it asked whether I wanted them in git anyway through LFS.
 **I decided:** Keep them out. I asked for the README to cover two ways to get them (the script, or a GitHub Release) and for ARCHITECTURE.md to explain this trade-off. Later, when I learned the Release did not exist, I told the AI: "do whatever is convenient for the company to aces" (sic). The AI then removed the dead Release route and made `run_app.bat` download the models on the first start. It tested three cases (models present, missing, and missing with no internet).
 **Why:** The 100 MB limit, and my own standing rule that model files are never committed.
 **Evidence:** Chat excerpt #3. One thing the AI weighed that I had not raised: committing the models would add about 190 MB to the repo permanently, because history is never rewritten.
 
-## Decision 8: A dashboard UI that fits on one screen, in a dark theme, and I decide when it merges
+## Decision 7: A dashboard UI that fits on one screen, in a dark theme, and I decide when it merges
 
 **AI suggested / did:** The first UI was three stacked step cards on a scrolling page. It worked, but I wanted more.
 **I decided:** A sequence of requests: nine polish features in order, then "Layout, like a dashboard" that fits on ONE screen with no page scrolling at 1366x768 and up, then small fixes (the repeated "works offline" text, the empty space in the top bar), then removing the Choose buttons and making dark the only look. I also set a gate on the work: do it on a branch and merge only after the tests pass and I say it looks good.
@@ -106,7 +100,7 @@ The AI added its own check: a script that measures the text contrast of every vi
 
 (chat 2: 24 Nov 10:32, 11:38, 12:03, 12:44, 13:10.)
 
-## Decision 9: How the AI handles git (rules, and no AI trailers)
+## Decision 8: How the AI handles git (rules, and no AI trailers)
 
 **AI suggested / did:** By default, the AI's commits carry a "Co-Authored-By: Claude" trailer and a "Generated with Claude Code" line.
 **I decided:** Turn that off for this project, use short one-line plain English messages, commit and push after each step, check `git status` before every commit, and never force-push, hard-reset, rewrite history, or change the repo's visibility or settings.
@@ -121,7 +115,7 @@ The AI added its own check: a script that measures the text contrast of every vi
 
 (chat 2, 23 Nov 21:00 and 21:37.) The commit log shows the result: one-line messages and no trailers.
 
-## Decision 10: Say the weak spots out loud
+## Decision 9: Say the weak spots out loud
 
 **AI suggested:** Nothing; this came from me first. The test photos are collages built from clean, large LFW faces, which is easier than a real group photo.
 **I decided:** Every result must come with its limits, and the docs must be honest, not just good-looking. I asked for the limits in RESEARCH.md and for "Keep it honest" in ARCHITECTURE.md.
@@ -130,6 +124,27 @@ The AI added its own check: a script that measures the text contrast of every vi
 > - Note the limits of the test (collage faces are large and clean, so real group photos will be harder).
 
 The AI wrote the limits into RESEARCH.md (section 3) and ARCHITECTURE.md ("Limits of the testing (please read)"), including that only UniFace was fully evaluated, the 0.62 default is a guess from easy data, and real small faces were not tested.
+
+## Decision 10: Let a person name an "Unknown" face, by adding reference data only
+
+**AI suggested:** The feature was not an AI suggestion in this chat: I pasted it in as a written task spec. While building it, the AI settled points the spec left open (for example, with a damaged saved-faces file, scans carry on with the folder photos and show a warning) and reported where two of the rules meet awkwardly on the page (fixing a typo, below).
+**I decided:** A "This is..." step on an Unknown card saves that one face's embedding under the typed name, and later scans compare against the folder photos and the saved faces, also after a restart. The models are not retrained. Nothing is learned automatically, no photos are saved, a wrong name can be deleted from the page, and renaming a face that is already Known is out of scope.
+**Why:** The goal in the spec: "so the same person is now recognised." It also gives reasons for its safety rules, for example refusing an out-of-date scan "so a name cannot land on the wrong face".
+**Evidence:** From my message (chat 2, 25 Nov 13:57):
+> This feedback loop adds reference data. **Do not retrain or fine-tune** the SCRFD or ArcFace models.
+
+> - Save an embedding **only** when someone explicitly labels a face. Never learn automatically from matches.
+> - Save no photos or face crops, only the data listed above.
+
+> - Out of scope: relabelling faces already shown as Known, accounts or login, a database.
+
+> 3. A **different** photo of the same person is matched to that name. Report the distance, and report it
+>    honestly if it is above the 0.62 default.
+
+From the AI's report (chat 2, 25 Nov 14:28):
+> - **Fixing a typo:** relabelling replaces the entry through the API, as you specified. On the page, the face shows as Known after saving and relabelling Known faces was out of scope, so you **delete the name and label it again**.
+
+**Result and cost:** The API test grew to 65 checks, all passing. For six people, a face saved from a group collage matched a different photo of the same person at distances 0.17 to 0.44. That is the same easy test data, not real photos. The cost, written in README.md and ARCHITECTURE.md: the app now writes biometric data to disk (`data/learned_faces.json`, not encrypted, not in git), where before it wrote nothing about people.
 
 ---
 
@@ -196,6 +211,7 @@ and the AI's report:
 
 - **A too-broad command.** While chasing the DeepFace hang the AI tried a command that would kill every `python.exe`. Claude Code's safety check blocked it, and the AI said: "Killing every `python.exe` was too broad. I'll stop only my own background task." (chat 2, 23 Nov 20:39).
 - **A wrong number in its own docs.** The AI had written "23 API checks" in the README and ARCHITECTURE.md. While updating the UI docs it caught that the test has 22 (the 23rd match was a helper function) and fixed both files (chat 2, 24 Nov 11:16).
-- **A dead link it had put in.** The README told people to download the models from a GitHub Release that did not exist. The AI flagged it when I asked whether the project was complete (chat 2, 24 Nov 13:20), and it was then removed (Decision 7).
+- **A dead link it had put in.** The README told people to download the models from a GitHub Release that did not exist. The AI flagged it when I asked whether the project was complete (chat 2, 24 Nov 13:20), and it was then removed (Decision 6).
+- **A test that compared a photo with itself.** The AI's first "different photo" check for the naming feature gave distances near zero. It found the cause and said so: "My first version of that check showed about 0.007, because the group collages are built from the `test_same` photos, so it was comparing a photo with itself." (chat 2, 25 Nov 14:28). The numbers in Decision 10 are from the corrected check.
 - **Public data, offline app.** The test photos are the public LFW collection (see RESEARCH.md, section 4). No online AI or API is used inside the solution; the app runs fully offline.
-- **Not yet proven.** I have not tested real group photos with small faces; RESEARCH.md and ARCHITECTURE.md say so.
+- **Not yet proven.** I have not tested real group photos with small faces, with or without saved names; RESEARCH.md and ARCHITECTURE.md say so.
