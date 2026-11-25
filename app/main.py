@@ -8,15 +8,17 @@ import os
 import sys
 import threading
 from contextlib import asynccontextmanager
+from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # so "import face_backend" works
 
-from fastapi import FastAPI, File, Request, UploadFile
+from fastapi import Body, FastAPI, File, Request, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 import engine
 import face_backend
+import learned
 from engine import Problem
 
 log = logging.getLogger("uvicorn.error")
@@ -44,7 +46,8 @@ app = FastAPI(title="Face Recognition (offline)", lifespan=lifespan)
 
 
 @app.exception_handler(Problem)
-async def problem_handler(request: Request, exc: Problem):
+@app.exception_handler(learned.StoreError)
+async def problem_handler(request: Request, exc: Exception):
     return JSONResponse({"detail": str(exc)}, status_code=400)
 
 
@@ -84,6 +87,27 @@ def analyse_group(sid: str, file: UploadFile = File(...)):
     session = engine.get_session(sid)
     data = file.file.read(engine.MAX_FILE_BYTES + 1)
     return session.analyse_group(data, file.filename or "group photo")
+
+
+@app.post("/api/session/{sid}/label")
+def label_face(sid: str, body: Any = Body(None)):
+    """Remember one face of the latest group scan under a name typed by the user."""
+    session = engine.get_session(sid)
+    if not isinstance(body, dict):
+        raise Problem("The request was not understood.")
+    return session.label(body.get("analysis_id"), body.get("face_id"), body.get("name"))
+
+
+@app.get("/api/people")
+def saved_people():
+    """Names saved by labelling faces, with how many samples each has. No embeddings."""
+    return {"people": engine.saved_people()}
+
+
+@app.delete("/api/people")
+def forget_person(name: str = ""):
+    """Delete every saved sample of one name."""
+    return {"removed": engine.forget_person(name)}
 
 
 app.mount("/", StaticFiles(directory=STATIC, html=True), name="static")

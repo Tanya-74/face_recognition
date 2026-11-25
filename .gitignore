@@ -20,3 +20,6 @@ __pycache__/
 .archify/
 .claude/skills/
 skills-lock.json
+
+# Faces named by the user (personal data, stays on this computer)
+/data/
