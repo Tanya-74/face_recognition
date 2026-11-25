@@ -21,6 +21,8 @@ const el = {
   openNotes: $("open-notes"), notesCount: $("notes-count"), notesDialog: $("notes-dialog"),
   notesTitle: $("notes-title"), notesList: $("notes-list"),
   tools: $("tools"), dlPng: $("dl-png"), dlCsv: $("dl-csv"),
+  openSaved: $("open-saved"), savedCount: $("saved-count"), savedDialog: $("saved-dialog"), savedTitle: $("saved-title"),
+  savedList: $("saved-list"), savedEmpty: $("saved-empty"), savedProblem: $("saved-problem"),
 };
 
 const state = {
@@ -34,6 +36,9 @@ const state = {
   sessionId: null,
   loadedKey: null,          // identifies the folder that is already processed on the server
   analysis: null,           // last answer for the group photo
+  scanSession: null,        // the session and the photo that answer came from (the user may have picked new ones since)
+  scannedFile: null,
+  naming: null,             // the Unknown face being named: {id, text, error}
   faces: [],                // faces with their label at the current threshold
   filter: "all",            // which faces to show: all | known | unknown
   hoverId: null,            // face under the mouse / keyboard focus
@@ -105,7 +110,15 @@ function setGroupNote(text) {
 function updateRunButton() {
   $("drop-folder").classList.toggle("done", state.folderFiles.length > 0);   // green when a step is finished
   $("drop-group").classList.toggle("done", !!state.groupFile);
-  el.run.disabled = !(state.ready && state.folderFiles.length && state.groupFile);
+  el.run.disabled = state.busy || !(state.ready && state.folderFiles.length && state.groupFile);
+}
+/* while the server is working: no new run, no new files, no naming or deleting */
+function setBusy(on) {
+  state.busy = on;
+  el.tools.hidden = on || !state.faces.length;   // no downloads while working (Cancel needs the room)
+  el.pickFolder.disabled = el.pickGroup.disabled = el.openSaved.disabled = on;
+  el.rows.inert = on;
+  updateRunButton();
 }
 function setProgress(fraction, text, busy = false) {
   el.progress.hidden = false;
@@ -150,6 +163,8 @@ async function pollStatus() {
       state.ready = true;
       setStatus("", "ok");                      // all good: nothing to show
       updateRunButton();
+      const problem = await refreshSaved();
+      if (problem) showError(problem, true);    // e.g. the saved-faces file is damaged
       return;
     }
     setStatus("Starting up...", "loading");
@@ -321,11 +336,8 @@ el.cancel.addEventListener("click", () => { if (state.abort) state.abort.abort()
 el.run.addEventListener("click", async () => {
   clearError();
   state.abort = new AbortController();
-  state.busy = true;
-  el.tools.hidden = true;                    // no downloads while working (Cancel needs the room)
-  el.run.disabled = true;
+  setBusy(true);
   el.cancel.hidden = false;
-  el.pickFolder.disabled = el.pickGroup.disabled = true;
   try {
     await processFolderIfNeeded();
     await analyseGroup();
@@ -339,11 +351,8 @@ el.run.addEventListener("click", async () => {
       showError(e.message);
     }
   } finally {
-    state.busy = false;
-    el.tools.hidden = !state.faces.length;     // downloads come back if there is a result to download
     el.cancel.hidden = true;
-    el.pickFolder.disabled = el.pickGroup.disabled = false;
-    updateRunButton();
+    setBusy(false);                            // downloads come back if there is a result to download
   }
 });
 
@@ -383,32 +392,44 @@ async function processFolderIfNeeded() {
   state.loadedKey = folderKey();
 }
 
-async function analyseGroup() {
-  setProgress(1, "Looking at the group photo...", true);
+function forgetSessionIfExpired(e) {
+  if (/expired/.test(e.message)) { state.sessionId = null; state.loadedKey = null; }   // next Run reads the folder again
+}
+
+/* again = the same photo once more after a name was saved or deleted: keep the filter, no entrance animation */
+async function analyseGroup(sid = state.sessionId, file = state.groupFile, again = false) {
+  setProgress(1, again ? "Checking the group photo again..." : "Looking at the group photo...", true);
   const form = new FormData();
-  form.append("file", state.groupFile, state.groupFile.name);
+  form.append("file", file, file.name);
   let data;
   try {
-    data = await api(`/api/session/${state.sessionId}/group`, { method: "POST", body: form, signal: state.abort.signal });
+    data = await api(`/api/session/${sid}/group`, { method: "POST", body: form, signal: state.abort.signal });
   } catch (e) {
-    if (/expired/.test(e.message)) { state.sessionId = null; state.loadedKey = null; }
+    forgetSessionIfExpired(e);
     throw e;
   }
+  const image = await loadImage(data.image);
   state.analysis = data;
-  state.filter = "all";
-  el.chips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.filter === "all")));
-  state.hoverId = state.selectedId = null;
-  state.image = await loadImage(data.image);
+  state.scanSession = sid;
+  state.scannedFile = file;
+  state.naming = null;
+  state.hoverId = null;
+  if (!again) {
+    state.filter = "all";
+    el.chips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.filter === "all")));
+    state.selectedId = null;
+  }
+  state.image = image;
   makeCrops();
   el.empty.hidden = true;
   el.photo.hidden = false;
   fitCanvas();
-  state.animateRows = true;
-  startReveal();                               // before the first draw, so the finished photo never flashes
+  state.animateRows = !again;
+  if (again) state.reveal = null; else startReveal();   // before the first draw, so the finished photo never flashes
   render();
-  replay(el.photo, "enter");
-  replay(el.panel, "enter");
+  if (!again) { replay(el.photo, "enter"); replay(el.panel, "enter"); }
   showNotes();
+  if (data.warning) showError(data.warning, true);
 }
 
 function loadImage(src) {
@@ -463,7 +484,8 @@ function render() {
   }
   el.summary.classList.toggle("visually-hidden", faces.length > 0);   // the number cards show it instead
   el.panelEmpty.hidden = true;
-  el.stats.hidden = el.chips.hidden = el.tools.hidden = !faces.length;
+  el.stats.hidden = el.chips.hidden = !faces.length;
+  el.tools.hidden = state.busy || !faces.length;
   el.statTotal.textContent = faces.length;
   el.statKnown.textContent = knownCount;
   el.statUnknown.textContent = faces.length - knownCount;
@@ -602,7 +624,7 @@ function paint(c, faces, act, rv, opts = {}) {
 
 /* ---------- downloads (made in the browser, nothing is sent anywhere) ---------- */
 function baseName() {
-  const n = state.groupFile ? state.groupFile.name.replace(/\.[^.]*$/, "") : "group";
+  const n = state.scannedFile ? state.scannedFile.name.replace(/\.[^.]*$/, "") : "group";
   return n.replace(/[\\/:*?"<>|]+/g, "_").trim() || "group";
 }
 function saveBlob(blob, filename) {
@@ -627,7 +649,7 @@ el.dlCsv.addEventListener("click", () => {
   if (!state.faces.length) return;
   const t = Number(el.threshold.value).toFixed(2);
   const rows = [["Face number", "Name", "Status", "Distance", "Closest known person", "Strictness used", "Group photo"]];
-  state.faces.forEach((f) => rows.push([f.id, f.name, f.known ? "Known" : "Unknown", f.distance.toFixed(3), f.nearest, t, state.groupFile ? state.groupFile.name : ""]));
+  state.faces.forEach((f) => rows.push([f.id, f.name, f.known ? "Known" : "Unknown", f.distance.toFixed(3), f.nearest, t, state.scannedFile ? state.scannedFile.name : ""]));
   const text = "﻿" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";   // BOM so Excel shows accents correctly
   saveBlob(new Blob([text], { type: "text/csv;charset=utf-8" }), baseName() + "_results.csv");
 });
@@ -741,6 +763,7 @@ function buildRows() {
     side.appendChild(b);
 
     li.append(cropWrap, main, side);
+    if (!f.known) li.appendChild(namingBox(f));
     li.addEventListener("mouseenter", () => setHover(f.id));
     li.addEventListener("mouseleave", () => setHover(null));
     li.addEventListener("focus", () => setHover(f.id));
@@ -762,5 +785,161 @@ function buildRows() {
   state.animateRows = false;                   // only the first build fades in, not slider moves
   refreshHighlight();
 }
+
+/* ---------- naming an Unknown face ("This is...") ---------- */
+function makeButton(text, cls, type = "button") {
+  const b = document.createElement("button");
+  b.type = type; b.className = cls; b.textContent = text;
+  return b;
+}
+function cardPart(id, selector) { return el.rows.querySelector(`li[data-id="${id}"] ${selector}`); }
+
+function openNaming(id) {
+  state.naming = { id, text: "", error: "" };
+  state.selectedId = id;                       // shows on the photo which face is being named
+  buildRows();
+  showNameForm(id);
+}
+/* cursor in the name box, and the whole card (with Save and Cancel) scrolled into view in the list */
+function showNameForm(id) {
+  const input = cardPart(id, "input");
+  if (!input) return;
+  input.focus({ preventScroll: true });
+  input.closest("li").scrollIntoView({ block: "nearest", behavior: scrollMode() });
+}
+function closeNaming(id) {
+  state.naming = null;
+  buildRows();
+  const b = cardPart(id, ".name-open");
+  if (b) b.focus();
+}
+
+/* the button on an Unknown card, or the small form once it is pressed */
+function namingBox(f) {
+  const box = document.createElement("div");
+  box.className = "naming";
+  box.title = "";                              // no "click to select" tooltip over the form
+  // typing and pressing buttons here must not also select the card (its click and Enter / Space handlers)
+  ["click", "keydown"].forEach((t) => box.addEventListener(t, (ev) => ev.stopPropagation()));
+
+  const n = state.naming;
+  if (!n || n.id !== f.id) {
+    const open = makeButton("This is...", "btn ghost name-open");
+    open.setAttribute("aria-label", `This is... give face ${f.id} a name`);
+    open.addEventListener("click", () => openNaming(f.id));
+    box.appendChild(open);
+    return box;
+  }
+
+  box.classList.add("open");
+  const form = document.createElement("form");
+  const label = document.createElement("label"); label.htmlFor = `name-${f.id}`; label.textContent = `Name of face ${f.id}`;
+  const input = document.createElement("input");
+  input.id = `name-${f.id}`; input.type = "text"; input.autocomplete = "off"; input.spellcheck = false; input.value = n.text;
+  const note = document.createElement("p"); note.id = `name-note-${f.id}`; note.className = "name-note"; note.setAttribute("aria-live", "polite");
+  input.setAttribute("aria-describedby", note.id);
+  const problem = document.createElement("p"); problem.className = "name-error"; problem.setAttribute("role", "alert");
+  problem.textContent = n.error; problem.hidden = !n.error;
+  const save = makeButton("Save", "btn primary sm", "submit");
+  const cancel = makeButton("Cancel", "btn secondary sm");
+  const update = () => {
+    const name = input.value.trim();
+    note.textContent = name ? `This face will be remembered on this computer as ${name}.`
+                            : "Type a name. This face will then be remembered on this computer.";
+    save.disabled = !name;
+  };
+  input.addEventListener("input", () => { n.text = input.value; n.error = ""; problem.hidden = true; update(); });
+  form.addEventListener("submit", (ev) => { ev.preventDefault(); saveName(f.id); });
+  cancel.addEventListener("click", () => closeNaming(f.id));
+  box.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { ev.preventDefault(); closeNaming(f.id); } });
+  const buttons = document.createElement("div"); buttons.className = "row"; buttons.append(save, cancel);
+  update();
+  form.append(label, input, note, problem, buttons);
+  box.appendChild(form);
+  return box;
+}
+
+async function saveName(id) {
+  const n = state.naming;
+  if (state.busy || !n || n.id !== id || !n.text.trim()) return;
+  clearError();
+  setBusy(true);
+  let saved;
+  try {
+    saved = await api(`/api/session/${state.scanSession}/label`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ analysis_id: state.analysis.analysis_id, face_id: id, name: n.text }),
+    });
+  } catch (e) {
+    forgetSessionIfExpired(e);
+    n.error = e.message;
+    setBusy(false);
+    buildRows();                               // keeps what was typed and shows the reason
+    showNameForm(id);
+    return;
+  }
+  state.naming = null;
+  await checkAgain(`${saved.name} was saved.`);
+  /* put the keyboard back where it was: on that card, or on the next face still to name */
+  const next = el.rows.querySelector(`li[data-id="${id}"]`) || el.rows.querySelector(".name-open") || el.chipAll.closest("button");
+  if (next) next.focus();
+}
+
+/* after a name is saved or deleted: scan the same photo again, so boxes, cards, counts and downloads are right.
+   The folder is not read again and the strictness slider is not touched. */
+async function checkAgain(done) {
+  state.abort = new AbortController();
+  setBusy(true);
+  try {
+    await analyseGroup(state.scanSession, state.scannedFile, true);
+  } catch (e) {
+    showError(`${done} The photo could not be checked again, so the names on screen may be out of date. Press Run. (${e.message})`, true);
+    buildRows();
+  } finally {
+    el.progress.hidden = true;
+    setBusy(false);
+  }
+  await refreshSaved();
+}
+
+/* ---------- saved people (a drawer) ---------- */
+async function refreshSaved() {
+  let people = [], problem = "";
+  try { people = (await api("/api/people")).people; } catch (e) { problem = e.message; }
+  el.openSaved.hidden = !people.length && !problem;
+  el.savedCount.textContent = problem ? "(!)" : `(${people.length})`;
+  el.savedTitle.textContent = problem ? "Saved people" : `Saved people (${people.length})`;
+  el.savedProblem.textContent = problem;
+  el.savedProblem.hidden = !problem;
+  el.savedEmpty.hidden = !!(people.length || problem);
+  el.savedList.replaceChildren(...people.map((p) => {
+    const li = document.createElement("li");
+    const text = document.createElement("div");
+    const name = document.createElement("span"); name.className = "person"; name.textContent = p.name;
+    const count = document.createElement("span"); count.className = "hint"; count.textContent = plural(p.samples, "saved face", "saved faces");
+    text.append(name, count);
+    const del = makeButton("Delete", "btn secondary sm");
+    del.setAttribute("aria-label", `Delete ${p.name}`);
+    del.addEventListener("click", () => deletePerson(p));
+    li.append(text, del);
+    return li;
+  }));
+  return problem;
+}
+async function deletePerson(p) {
+  if (state.busy) return;
+  if (!window.confirm(`Delete "${p.name}"?\n\n${plural(p.samples, "saved face", "saved faces")} will be removed from this computer. This cannot be undone.`)) return;
+  try {
+    await api(`/api/people?name=${encodeURIComponent(p.name)}`, { method: "DELETE" });
+  } catch (e) {
+    el.savedProblem.textContent = e.message; el.savedProblem.hidden = false;
+    return;
+  }
+  await refreshSaved();
+  el.savedDialog.querySelector("[data-close]").focus();
+  if (state.analysis) { clearError(); await checkAgain(`${p.name} was deleted.`); }
+}
+el.openSaved.addEventListener("click", () => { el.savedDialog.showModal(); refreshSaved(); });
+el.savedDialog.addEventListener("close", () => { if (el.openSaved.hidden) el.run.focus(); });
 
 pollStatus();

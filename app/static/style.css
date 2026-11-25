@@ -85,6 +85,15 @@ h1, h2, h3, p { margin: 0; }
 .top-extra { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .top-extra .btn { padding: 0 13px; font-size: .92rem; }
 
+/* laptop widths: a little tighter, so all the top-bar buttons stay on one row */
+@media (min-width: 901px) and (max-width: 1500px) {
+  .topbar { column-gap: 12px; }
+  .actions { gap: 10px; }
+  .file-note { max-width: 165px; }
+  .top-extra { gap: 6px; }
+  .top-extra .btn { padding: 0 8px; font-size: .86rem; }
+}
+
 /* ---------- buttons ---------- */
 .btn {
   font: inherit; font-weight: 600; font-size: 1rem;
@@ -231,6 +240,21 @@ canvas { display: block; border-radius: 8px; }
 .badge.unknown { background: var(--unknown); color: #3a2400; }
 li.empty { text-align: center; color: var(--muted); padding: 22px 10px; cursor: default; list-style: none; }
 
+/* naming an Unknown face: a small button under the name, or the form across the whole card */
+.naming { grid-column: 2 / -1; margin-top: -6px; cursor: default; }
+.naming.open { grid-column: 1 / -1; margin-top: 0; }
+.btn.name-open { min-height: 30px; padding: 0 12px; font-size: .85rem; border-width: 1px; border-radius: 9px; }
+.naming form { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+.naming label { font-size: .85rem; font-weight: 700; }
+.naming input {
+  font: inherit; width: 100%; min-height: 38px; padding: 0 10px; border-radius: 9px;
+  border: 2px solid var(--line-strong); background: var(--bg); color: var(--text);
+}
+.naming input:focus { border-color: var(--accent-text); }
+.name-note { font-size: .82rem; color: var(--muted); overflow-wrap: anywhere; }
+.name-error { font-size: .85rem; font-weight: 600; color: var(--error); overflow-wrap: anywhere; }
+.naming .btn.sm { min-height: 36px; }
+
 /* ---------- bottom bar ---------- */
 .bottombar {
   flex: none; display: flex; align-items: center; gap: 20px; padding: 10px 20px 12px;
@@ -277,6 +301,11 @@ dialog.drawer::backdrop { background: rgba(0, 0, 0, .62); }
 #gallery-more { margin-top: 16px; }
 .notes-list { margin: 0; padding-left: 20px; font-size: .92rem; color: var(--muted); }
 .notes-list li { overflow-wrap: anywhere; margin-bottom: 8px; }
+.drawer-note { font-size: .92rem; color: var(--muted); margin-bottom: 14px; }
+.saved-problem { margin-bottom: 14px; padding: 10px 12px; border-radius: 12px; font-weight: 600; font-size: .92rem; overflow-wrap: anywhere; background: var(--error-bg); color: var(--error); border: 1px solid var(--error-line); }
+.saved-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.saved-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+.saved-list li > div { min-width: 0; }
 
 /* ---------- gentle entrance of the result ---------- */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }

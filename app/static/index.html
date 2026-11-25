@@ -41,6 +41,7 @@
       <div class="top-extra">
         <button id="open-gallery" class="btn ghost sm" type="button" hidden>Known people <span id="gallery-count"></span></button>
         <button id="open-notes" class="btn ghost sm" type="button" hidden>Folder notes <span id="notes-count"></span></button>
+        <button id="open-saved" class="btn ghost sm" type="button" hidden>Saved people <span id="saved-count"></span></button>
         <div id="tools" class="tools" hidden>
           <button id="dl-png" class="btn sm" type="button" title="Save the group photo with the boxes and names">Download PNG</button>
           <button id="dl-csv" class="btn sm" type="button" title="Save the list of faces as a spreadsheet file">Download CSV</button>
@@ -141,6 +142,19 @@
     </div>
     <div class="drawer-body">
       <ul id="notes-list" class="notes-list"></ul>
+    </div>
+  </dialog>
+
+  <dialog id="saved-dialog" class="drawer" aria-labelledby="saved-title">
+    <div class="drawer-head">
+      <h2 id="saved-title">Saved people</h2>
+      <button class="btn ghost sm" type="button" data-close>Close</button>
+    </div>
+    <div class="drawer-body">
+      <p class="drawer-note">Names you gave to unknown faces. They are kept on this computer and used in every later scan.</p>
+      <p id="saved-problem" class="saved-problem" role="alert" hidden></p>
+      <p id="saved-empty" class="drawer-note" hidden>Nobody is saved.</p>
+      <ul id="saved-list" class="saved-list"></ul>
     </div>
   </dialog>
 
