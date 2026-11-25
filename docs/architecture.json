@@ -12,7 +12,7 @@
       "url": "https://github.com/Tanya-74/face_recognition.git",
       "provider": "github",
       "link_mode": "local-only",
-      "revision": "72cdf78dea7b590a77fbf4e101d7d0a178eac7ec"
+      "revision": "8bb6f4bdc503e17a7a050387d1ec1533c2c76d5a"
     }
   },
   "components": [
@@ -72,6 +72,19 @@
       ]
     },
     {
+      "id": "saved",
+      "type": "database",
+      "label": "Saved faces",
+      "sublabel": "data/learned_faces.json",
+      "tag": "only faces you name",
+      "sources": [
+        {
+          "path": "app/learned.py",
+          "label": "saved faces file"
+        }
+      ]
+    },
+    {
       "id": "backend",
       "type": "backend",
       "label": "Face backend",
@@ -119,6 +132,7 @@
         "api",
         "engine",
         "cache",
+        "saved",
         "backend",
         "models"
       ]
@@ -156,6 +170,13 @@
       "from": "engine",
       "to": "cache",
       "label": "store / read",
+      "variant": "dashed"
+    },
+    {
+      "id": "engine-saved",
+      "from": "engine",
+      "to": "saved",
+      "label": "save / read",
       "variant": "dashed"
     },
     {
@@ -197,10 +218,10 @@
     },
     {
       "dot": "amber",
-      "title": "Cache",
+      "title": "What is kept",
       "items": [
-        "Known-people embeddings stay in memory until restart",
-        "Not stored on disk"
+        "Folder and group-scan embeddings stay in memory until restart",
+        "Only faces you name are written to disk: name and embedding, no photos"
       ]
     }
   ]

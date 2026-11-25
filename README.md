@@ -3,6 +3,8 @@
 A small web app that runs **only on your computer**. You give it a folder of known people
 (one photo each, the file name is the person's name) and one group photo. It draws a box and
 a name on every face and lists the results. After the one-time setup it needs **no internet**.
+If a face shows as "Unknown", you can type the person's name and the app
+[remembers it](#name-an-unknown-face) for later scans.
 
 Face library: [UniFace](https://github.com/yakhyo/uniface) (SCRFD detector + ArcFace).
 Why this one: [RESEARCH.md](RESEARCH.md). How the app is built: [ARCHITECTURE.md](ARCHITECTURE.md).
@@ -99,6 +101,37 @@ The distance is a cosine distance: 0 = identical, bigger = more different. In ou
 (see [RESEARCH.md](RESEARCH.md)) the range 0.55 to 0.80 gave no mistakes, but real photos are harder,
 so check the slider on your own photos.
 
+### Name an unknown face
+
+1. On the card of an **Unknown** face press **This is...**, type the name and press **Save** (or Enter).
+   Before you save, the card says: "This face will be remembered on this computer as *the name you typed*."
+2. The app checks the same group photo again, so boxes, cards, counts and downloads are up to date.
+   The folder is not read again and the slider stays where it is.
+3. From now on, every scan compares faces with the folder photos **and** the saved faces, also after a restart.
+   A saved person does not need a photo in the folder. (You still choose a folder before you press Run.)
+
+**Wrong name or typo?** Open **Saved people** (top bar), press **Delete** next to the name, confirm, and name the
+face again. Delete removes all saved faces of that name. A face that already shows as Known cannot be renamed on its card.
+
+The name must be 1 to 80 characters and cannot be "Unknown". If the name already exists (in the folder or saved),
+the existing spelling is used. Nothing is learned automatically: a face is saved only when you press Save.
+The face models are not retrained.
+
+### Saved faces: where they are, and how to delete them
+
+Saved faces are kept in **`data\learned_faces.json`** inside the project folder. The file appears the first time you
+save a name. For each saved face it holds an id, the name, the embedding (512 numbers that describe the face), the
+recognition model's name and the date. **No photos or face pictures are saved.** The file is not in git.
+
+This is personal (biometric) data and it is **not encrypted**: anyone who can read your files can read it.
+
+- Delete one person: **Saved people**, then **Delete**.
+- Delete everyone: close the app and delete the file (or the whole `data` folder). Do this before a demonstration
+  if you do not want earlier names to show up.
+- To keep the file somewhere else, set the environment variable `FACE_LEARNED_FILE` to its full path before starting.
+- If the file is damaged or cannot be read, the app says so, goes on with the folder photos only, and does **not**
+  overwrite the file. Repair it or delete it.
+
 ### What happens with odd input
 
 | Situation | What the app does |
@@ -112,6 +145,8 @@ so check the slider on your own photos.
 | Group photo with no faces | Message "No faces were found..." |
 | Very large folder | Sent in small batches with a progress bar and a **Cancel** button. Limit: 5000 photos. The **Known people** drawer shows the first 48, then "Show all" |
 | Models missing | The page shows "Face models not found" and tells you to repeat step 4 |
+| Saved-faces file damaged | A warning names the file. Scans use the folder only, saving and deleting are refused, the file is left unchanged |
+| Naming a face from an out-of-date result | Refused with "Press Run, then name the face again", so a name cannot land on the wrong face |
 
 ## Test it with the WiFi turned off
 
@@ -122,8 +157,9 @@ so check the slider on your own photos.
    is your own computer, so it works without internet). After a few seconds the "Starting up..." note disappears: the models were
    loaded from the `models\` folder.
 4. Choose a folder and a group photo, press Run. It should work exactly as before.
-5. Optional proof: an automatic test starts the server with all network access blocked and checks 22 things:
-   `python tests\test_app.py` (2 to 4 minutes, prints PASS or FAIL for each).
+5. Optional proof: an automatic test starts the server with all network access blocked and checks 65 things:
+   `python tests\test_app.py` (1 to 6 minutes depending on the machine, prints PASS or FAIL for each). It saves test names to a
+   temporary file, never to your `data` folder.
 
 If something needed the internet, a red note would appear at the top instead. The page loads no fonts,
 scripts or images from the web (everything is in `app\static\`), and the server listens on 127.0.0.1 only, so
@@ -142,7 +178,8 @@ other computers on your network cannot reach it.
 | "Your session expired" | The app was restarted. Choose the folder again and press Run. |
 | First Run is very slow | Normal for a big folder (every photo is read once). The first start can also be slow while Windows scans the new files. |
 | Someone who should be known shows as Unknown | Raise the slider a little, and check that their folder photo shows the face clearly, looking at the camera. |
-| A stranger gets a name | Lower the slider. |
+| A stranger gets a name | Lower the slider. If the name came from **This is...**, delete it under **Saved people**. |
+| "The saved faces file is damaged or cannot be read" | See "Saved faces" above: repair or delete the file named in the message. |
 
 ## Project layout
 
@@ -150,6 +187,8 @@ other computers on your network cannot reach it.
 app/main.py            web server (FastAPI) and the JSON API
 app/engine.py          image preparation, cached embeddings, matching
 app/face_backend.py    the face library behind two functions: get_faces(image), distance(a, b)
+app/learned.py         reads and writes the faces you named
+data/                  your saved faces (created when you name one; not in git)
 app/static/            the page (index.html, style.css, app.js, favicon.svg), all local
 models/                the two .onnx model files (not in git)
 scripts/download_models.py   one-time model download
