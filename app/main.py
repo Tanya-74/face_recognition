@@ -23,6 +23,8 @@ from engine import Problem
 
 log = logging.getLogger("uvicorn.error")
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+SAMPLES = os.path.join(face_backend.ROOT, "experiments", "data")       # sample photos, used only by demo.bat
+DEMO = bool(os.environ.get("FACE_DEMO")) and os.path.isdir(SAMPLES)
 state = {"ready": False, "error": ""}
 
 
@@ -109,5 +111,13 @@ def forget_person(name: str = ""):
     """Delete every saved sample of one name."""
     return {"removed": engine.forget_person(name)}
 
+
+if DEMO:
+    @app.get("/api/demo")
+    def demo_photos():
+        """The sample photos the page loads in demo mode."""
+        return {"folder": sorted(os.listdir(os.path.join(SAMPLES, "folder"))), "group": "group1.jpg"}
+
+    app.mount("/demo-data", StaticFiles(directory=SAMPLES), name="demo-data")
 
 app.mount("/", StaticFiles(directory=STATIC, html=True), name="static")

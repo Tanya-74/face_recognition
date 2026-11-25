@@ -49,7 +49,8 @@ The models are not retrained or fine-tuned: the app only adds reference embeddin
 | Saved faces | `app/learned.py`, `data/learned_faces.json` | The only thing about people that is written to disk: faces the user named (id, name, embedding, model name, date; no photos). Written through a temporary file and a lock; a damaged file is reported and never overwritten; entries made with another recognition model are ignored. |
 | Face backend | `app/face_backend.py` | The only place that knows about UniFace. It offers two functions: `get_faces(image)` and `distance(a, b)`. The experiments use the same two functions. Another library can be swapped in by writing another file like it. |
 | Model files | `models/*.onnx` | The SCRFD detector (finds faces) and the ArcFace model (makes embeddings). Loaded from this folder only, on CPU. |
-| Download script | `scripts/download_models.py` | Fetches the two model files once. This is the only moment the internet is used. |
+| Download script | `scripts/download_models.py` | Fetches the two model files once. Together with the package install, this is the only time the internet is used. |
+| Demo | `demo.bat`, `scripts/demo.py` | One double-click: makes `.venv`, installs the packages and models if needed, then starts the app with `FACE_DEMO=1`. Only then does the server offer the sample photos from `experiments/data` (`/api/demo`, `/demo-data/`); the page loads them and presses Run the same way a user would. Names saved in a demo go to `data/demo_faces.json`. |
 
 ## The web page (UI)
 

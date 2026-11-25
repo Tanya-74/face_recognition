@@ -3,7 +3,7 @@ rem Activates the virtual environment, gets the face models if they are missing,
 rem starts the server and opens the browser. Double-click this file.
 cd /d "%~dp0"
 if not exist ".venv\Scripts\activate.bat" (
-  echo The app is not installed yet. Follow "Install" in README.md first.
+  echo The app is not installed yet. Double-click demo.bat once, or follow "Install" in README.md.
   pause
   exit /b 1
 )
@@ -21,7 +21,7 @@ if "%NEED_MODELS%"=="1" (
   if errorlevel 1 (
     echo.
     echo The models could not be downloaded. Connect to the internet and double-click this file again.
-    echo Or copy the two .onnx files into the models folder by hand. See README.md, step 4.
+    echo Or copy the two .onnx files into the models folder by hand. See "Install" in README.md.
     pause
     exit /b 1
   )

@@ -54,8 +54,13 @@ const state = {
 /* ---------- small helpers ---------- */
 function showError(msg, warn = false) {
   el.error.textContent = msg;
+  el.error.classList.remove("info");
   el.error.classList.toggle("warn", warn);
   el.error.hidden = false;
+}
+function showInfo(msg) {                       // same banner, in blue: nothing is wrong
+  showError(msg);
+  el.error.classList.add("info");
 }
 function clearError() { el.error.hidden = true; el.error.textContent = ""; }
 /* restart a CSS animation class */
@@ -942,4 +947,37 @@ async function deletePerson(p) {
 el.openSaved.addEventListener("click", () => { el.savedDialog.showModal(); refreshSaved(); });
 el.savedDialog.addEventListener("close", () => { if (el.openSaved.hidden) el.run.focus(); });
 
+/* ---------- demo mode (demo.bat): load the sample photos and press Run, as a user would ---------- */
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function samplePhoto(path, name) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`The sample photo '${name}' could not be loaded.`);
+  return new File([await res.blob()], name, { type: "image/jpeg" });
+}
+async function startDemo() {
+  history.replaceState(null, "", location.pathname);          // a refresh gives the normal, empty page
+  try {
+    while (!state.ready) await sleep(300);
+    if (state.folderFiles.length || state.groupFile) return;  // the user has already started
+    showInfo("Demo: loading the sample photos...");
+    const list = await api("/api/demo");
+    const folder = [];
+    for (const name of list.folder) folder.push(await samplePhoto(`/demo-data/folder/${encodeURIComponent(name)}`, name));
+    const group = await samplePhoto(`/demo-data/groups/${encodeURIComponent(list.group)}`, list.group);
+    if (state.folderFiles.length || state.groupFile) return;
+    setFolder(folder);
+    setGroup(group, " (sample)");
+    el.run.click();
+    while (state.busy) await sleep(300);
+    if (state.analysis) {
+      showInfo("Demo finished: public sample photos. Point at a face, move the Strictness slider, or press " +
+        "\"This is...\" on an unknown face. Use \"Change folder\" and \"Change photo\" to try your own.");
+    }
+  } catch (e) {
+    showError(`The demo could not start. ${e.message}`);
+  }
+}
+
 pollStatus();
+if (new URLSearchParams(location.search).has("demo")) startDemo();

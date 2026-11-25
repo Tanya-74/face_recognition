@@ -117,6 +117,7 @@ h1, h2, h3, p { margin: 0; }
   background: var(--error-bg); color: var(--error); border: 1px solid var(--error-line);
 }
 .alert.warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-line); }
+.alert.info { background: #14213f; color: var(--accent-text); border-color: var(--accent); }
 
 /* ---------- main area: two columns that fill the remaining height ---------- */
 .workspace {

@@ -41,7 +41,7 @@ def open_browser_when_ready(server, url):
         time.sleep(0.2)
     print(f"\nThe app is running at {url}\nKeep this window open while you use it. Close it to stop the app.\n",
           flush=True)
-    webbrowser.open(url)
+    webbrowser.open(url + ("/?demo=1" if os.environ.get("FACE_DEMO") else ""))
 
 
 def main():
