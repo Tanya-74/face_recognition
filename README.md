@@ -58,7 +58,9 @@ PowerShell: `Get-FileHash models\*.onnx -Algorithm SHA256`. The hashes must be:
 ## Run
 
 **Easy way:** double-click **`run_app.bat`**. It activates the environment, gets the models if they are missing,
-starts the server and opens your browser at <http://127.0.0.1:8000>. Keep the black window open while you use the app; close it to stop the app.
+starts the server and opens your browser at <http://127.0.0.1:8000> as soon as the server answers. If another program is
+already using port 8000, it takes the next free port (8001, 8002, ...) and prints the address in the window.
+Keep the black window open while you use the app; close it to stop the app.
 
 **By hand** (in PowerShell, in the project folder):
 ```powershell
@@ -116,8 +118,8 @@ so check the slider on your own photos.
 1. Finish the install above and run the app once while online. This also proves the models are in `models\`.
 2. Close the app. **Turn WiFi off** (and unplug any network cable). Airplane mode is the easiest:
    Windows key, then Airplane mode. Open any website in a browser tab to check that there really is no internet.
-3. Double-click `run_app.bat` again. The page opens at `http://127.0.0.1:8000` (that address is your own
-   computer, so it works without internet). After a few seconds the "Starting up..." note disappears: the models were
+3. Double-click `run_app.bat` again. The page opens at `http://127.0.0.1:8000`, or the next free port (that address
+   is your own computer, so it works without internet). After a few seconds the "Starting up..." note disappears: the models were
    loaded from the `models\` folder.
 4. Choose a folder and a group photo, press Run. It should work exactly as before.
 5. Optional proof: an automatic test starts the server with all network access blocked and checks 22 things:
@@ -136,7 +138,7 @@ other computers on your network cannot reach it.
 | Red note "Face models not found" at the top, or the page says "Model files missing" | The `.onnx` files are not in `models\`. Double-click `run_app.bat` (it downloads them) or repeat step 4. Both files must be there. |
 | `download_models.py` says "Could not get ..." | No internet or a blocked connection. Fix the connection and run it again, or copy the two files by hand (see step 4). |
 | `pip install` fails | Check that `py -3.11 --version` works and you are online. Run the command again. |
-| The page does not open / "Cannot reach the app" | The black window must stay open. If it shows an error, read it. Port 8000 may be taken: start by hand with `--port 8001` and open <http://127.0.0.1:8001>. |
+| The page does not open / "Cannot reach the app" | The black window must stay open. If it shows an error, read it. Use the address printed in that window: it is not 8000 when another program holds that port. (Starting by hand: add `--port 8001` instead.) |
 | "Your session expired" | The app was restarted. Choose the folder again and press Run. |
 | First Run is very slow | Normal for a big folder (every photo is read once). The first start can also be slow while Windows scans the new files. |
 | Someone who should be known shows as Unknown | Raise the slider a little, and check that their folder photo shows the face clearly, looking at the camera. |
@@ -153,6 +155,7 @@ models/                the two .onnx model files (not in git)
 scripts/download_models.py   one-time model download
 tests/test_app.py      end-to-end test with edge cases
 run_app.bat            start script
+scripts/launch.py      picks a free port, starts the server, opens the browser when it is ready
 docs/                  architecture diagram (SVG, PNG, interactive HTML) and its source
 experiments/           the library comparison (smoke tests, full evaluation, charts)
 RESEARCH.md            results of the comparison
